@@ -5,9 +5,8 @@ function UserLayout() {
   return (
     <>
       <Header />
-      {/* <SubHeader /> */}
-      <div className="w-full bg-[#ebebeb]">
-        <div className="max-w-7xl mx-60 py-8 bg-white px-3">
+      <div className="">
+        <div className="">
           <Outlet />
         </div>
       </div>
