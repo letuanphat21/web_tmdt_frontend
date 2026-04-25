@@ -1,1 +1,27 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Cấu hình màu sắc tùy chỉnh dựa trên CSS của bạn */
+@theme {
+    --color-brand-bg: #F9FAF4;
+    --color-brand-input: #F3F4EE;
+    --color-brand-heading: #1A1C19;
+    --color-brand-text: #444840;
+    --color-brand-placeholder: #C4C8BD;
+    --color-brand-primary: #49613E;
+    --color-brand-secondary: #617A55;
+    --color-brand-divider: rgba(196, 200, 189, 0.3);
+    --color-brand-social-border: rgba(196, 200, 189, 0.1);
+    --color-brand-social-text: #74796F;
+
+    /* Giả lập Font (Nếu bạn đã import font Manrope/Plus Jakarta Sans thì thêm vào đây) */
+    --font-manrope: 'Manrope', sans-serif;
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+}
+
+@layer base {
+    body {
+        @apply bg-brand-bg antialiased text-brand-text font-sans;
+    }
+}

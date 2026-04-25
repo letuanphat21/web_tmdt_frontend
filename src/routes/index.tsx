@@ -3,10 +3,11 @@ import UserLayout from "../layouts/UserLayout";
 import publicRoutes from "./publicRoutes";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <UserLayout />,
-    children: publicRoutes,
-  },
+    {
+        path: "/",
+        element: <UserLayout />,
+        children: publicRoutes,
+    },
 ]);
+
 export default router;
