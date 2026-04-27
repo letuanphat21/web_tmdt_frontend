@@ -1,6 +1,7 @@
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Checkout from "@/pages/Checkout";
 
 const publicRoutes = [
     {
@@ -15,6 +16,10 @@ const publicRoutes = [
         path: "register",
         element: <Register />,
     },
+    {
+        path: "/checkout",
+        element: <Checkout />
+    }
 ];
 
 export default publicRoutes;

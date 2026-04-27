@@ -3,6 +3,7 @@ import {Link} from 'react-router-dom';
 import AuthInput from '@/components/common/AuthInput';
 import AuthButton from '@/components/common/AuthButton';
 import SocialAuthButtons from '@/components/common/SocialAuthButtons';
+import ORDivider from "@/components/common/ORDivider.tsx";
 
 const Login: React.FC = () => {
     return (
@@ -61,13 +62,7 @@ const Login: React.FC = () => {
                     <AuthButton text="Đăng nhập"/>
 
                     {/* Divider */}
-                    <div className="relative flex items-center my-2">
-                        <div className="flex-grow border-t border-[rgba(196,200,189,0.3)]"></div>
-                        <span className="mx-3 text-[11px] tracking-widest font-semibold text-[#74796F]">
-                            OR SIGN IN WITH
-                        </span>
-                        <div className="flex-grow border-t border-[rgba(196,200,189,0.3)]"></div>
-                    </div>
+                    <ORDivider text="OR SIGN IN WITH" />
 
                     <SocialAuthButtons/>
 
