@@ -70,7 +70,7 @@ function SideBarUser() {
 
       <MenuItem to="/favorites" icon={<Heart size={20} />} text="Yêu thích" />
       <MenuItem
-        to="/buy-orders"
+        to="/profile/buy-orders"
         icon={<ShoppingCart size={20} />}
         text="Đơn mua"
       />
