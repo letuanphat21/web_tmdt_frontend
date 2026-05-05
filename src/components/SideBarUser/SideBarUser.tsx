@@ -39,7 +39,7 @@ function SideBarUser() {
         text="Thông báo"
       />
       <MenuItem
-        to="/promotions"
+        to="/profile/promotions"
         icon={<TicketCheck size={20} />}
         text="Các khuyến mãi"
       />
