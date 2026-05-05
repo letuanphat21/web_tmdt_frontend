@@ -1,6 +1,7 @@
 import UserNotification from "@/pages/UserNotification";
 import UserProfile from "@/pages/UserProfile";
-import UserPromotion from "@/pages/UserPromotion/UserPromotion";
+import UserPromotion from "@/pages/UserPromotion";
+import UserSellOrder from "@/pages/UserSellOrder";
 import UserWallet from "@/pages/UserWallet/UserWallet";
 
 const profileRoutes = [
@@ -16,6 +17,10 @@ const profileRoutes = [
   {
     path: "promotions",
     element: <UserPromotion />,
+  },
+  {
+    path: "sell-orders",
+    element: <UserSellOrder />,
   },
 ];
 
