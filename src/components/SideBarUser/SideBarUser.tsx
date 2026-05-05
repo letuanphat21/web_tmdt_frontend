@@ -18,14 +18,18 @@ function SideBarUser() {
     <div className="pt-8 flex flex-col gap-2">
       <span className="p-2">Cài đặt</span>
 
-      <MenuItem to="/profile" icon={<User size={20} />} text="Hồ sơ của tôi" />
+      <MenuItem
+        to="/profile/information"
+        icon={<User size={20} />}
+        text="Hồ sơ của tôi"
+      />
       <MenuItem
         to="/messages"
         icon={<MessageCircle size={20} />}
         text="Tin nhắn"
       />
       <MenuItem
-        to="/wallet"
+        to="/profile/wallet"
         icon={<Landmark size={20} />}
         text="Tiền của tôi"
       />
