@@ -1,9 +1,14 @@
 import UserProfile from "@/pages/UserProfile";
+import UserWallet from "@/pages/UserWallet/UserWallet";
 
 const profileRoutes = [
   {
-    index: true,
+    path: "information",
     element: <UserProfile />,
+  },
+  {
+    path: "wallet",
+    element: <UserWallet />,
   },
 ];
 
