@@ -58,14 +58,22 @@ function SideBarUser() {
         icon={<List size={20} />}
         text="Tất cả sản phẩm"
       />
-      <MenuItem to="/orders" icon={<Van size={20} />} text="Đơn bán" />
+      <MenuItem
+        to="/profile/sell-orders"
+        icon={<Van size={20} />}
+        text="Đơn bán"
+      />
 
       <HorizontalDivider />
 
       <span className="p-2">Mua hàng</span>
 
       <MenuItem to="/favorites" icon={<Heart size={20} />} text="Yêu thích" />
-      <MenuItem to="/orders" icon={<ShoppingCart size={20} />} text="Đơn mua" />
+      <MenuItem
+        to="/buy-orders"
+        icon={<ShoppingCart size={20} />}
+        text="Đơn mua"
+      />
 
       <div className="mt-4 flex items-center justify-center">
         <button className="bg-[#4E6A4E] text-white px-5 h-10 rounded-full font-medium w-fit hover:cursor-pointer hover:opacity-80">
