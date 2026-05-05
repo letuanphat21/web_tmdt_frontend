@@ -7,7 +7,7 @@ function ProfileLayout() {
       <aside className="col-span-2 bg-brand-input p-8">
         <SideBarUser />
       </aside>
-      <main className="col-span-9 bg-brand-bg p-3">
+      <main className="col-span-10 bg-brand-bg">
         <Outlet />
       </main>
     </div>
