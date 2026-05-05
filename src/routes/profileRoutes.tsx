@@ -1,3 +1,4 @@
+import UserBuyOrder from "@/pages/UserBuyOrder";
 import UserNotification from "@/pages/UserNotification";
 import UserProfile from "@/pages/UserProfile";
 import UserPromotion from "@/pages/UserPromotion";
@@ -22,6 +23,7 @@ const profileRoutes = [
     path: "sell-orders",
     element: <UserSellOrder />,
   },
+  { path: "buy-orders", element: <UserBuyOrder /> },
 ];
 
 export default profileRoutes;
