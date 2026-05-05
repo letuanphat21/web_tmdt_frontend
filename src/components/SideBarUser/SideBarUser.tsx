@@ -34,7 +34,7 @@ function SideBarUser() {
         text="Tiền của tôi"
       />
       <MenuItem
-        to="/notifications"
+        to="/profile/notifications"
         icon={<Bell size={20} />}
         text="Thông báo"
       />
