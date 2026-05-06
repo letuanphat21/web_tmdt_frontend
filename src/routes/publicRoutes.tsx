@@ -3,6 +3,7 @@ import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import Checkout from "@/pages/Checkout";
 import ProductSearch from "@/pages/ProductSearch";
+import ProductDetail from "@/pages/ProductDetail";
 
 const publicRoutes = [
     {
@@ -24,6 +25,11 @@ const publicRoutes = [
     {
         path: "search",
         element: <ProductSearch />
+    },
+  {
+  
+        path: "/product/:id",
+        element: <ProductDetail />
     }
 ];
 
