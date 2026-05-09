@@ -4,25 +4,31 @@ import publicRoutes from "./publicRoutes";
 import ProfileLayout from "@/layouts/ProfileLayout/ProfileLayout";
 import ProfileRoute from "./ProfileRoute";
 import profileRoutes from "./profileRoutes";
+import adminRoutes from "./adminRoutes";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <UserLayout />,
-    children: [
-      ...publicRoutes,
-      {
-        element: <ProfileRoute />,
+    // --- KHU VỰC 1: DÀNH CHO KHÁCH HÀNG ---
+    {
+        path: "/",
+        element: <UserLayout />, // Load Header và Footer chung của OReMA
         children: [
-          {
-            path: "profile",
-            element: <ProfileLayout />,
-            children: profileRoutes,
-          },
+            ...publicRoutes, // Các trang public (Home, Login, Search, Detail...)
+            {
+                element: <ProfileRoute />, // Chặn nếu chưa đăng nhập
+                children: [
+                    {
+                        path: "profile",
+                        element: <ProfileLayout />,
+                        children: profileRoutes, // Các trang cá nhân (Đơn hàng, Ví...)
+                    },
+                ],
+            },
         ],
-      },
-    ],
-  },
+    },
+
+    // --- KHU VỰC 2: DÀNH CHO ADMIN ---
+    // Đặt độc lập hoàn toàn để không bị dính UserLayout
+    adminRoutes,
 ]);
 
 export default router;
