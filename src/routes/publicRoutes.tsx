@@ -6,6 +6,7 @@ import Checkout from "@/pages/Checkout";
 import ProductSearch from "@/pages/ProductSearch";
 import ProductDetail from "@/pages/ProductDetail";
 import UserSellingPost from "@/pages/UserSellingPost";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 const publicRoutes = [
     {
@@ -40,6 +41,10 @@ const publicRoutes = [
       path: "selling-post",
       element: <UserSellingPost/>
     },
+    {
+        path: "*",
+        element: <NotFoundPage/>
+    }
 ];
 
 export default publicRoutes;
