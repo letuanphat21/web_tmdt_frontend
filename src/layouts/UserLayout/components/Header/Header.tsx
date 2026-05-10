@@ -67,14 +67,17 @@ const Header = () => {
                     )}
 
                     {/* ICONS */}
-                    <ShoppingCart size={20} className="cursor-pointer"/>
+                    <Link to="/cart" className="text-gray-700 hover:text-black transition-colors">
+                        <ShoppingCart size={20} className="cursor-pointer" />
+                    </Link>
                     <Bell size={20} className="cursor-pointer"/>
 
                     {/* BUTTON */}
-                    <button className="bg-[#4E6A4E] text-white px-5 h-[40px] rounded-full font-medium">
-                        Đăng bán
-                    </button>
-
+                    <Link to="/selling-post" className="text-gray-700 hover:text-black transition-colors">
+                        <button className="bg-[#4E6A4E] text-white px-5 h-[40px] rounded-full font-medium">
+                            Đăng bán
+                        </button>
+                    </Link>
                 </div>
             </div>
         </header>
