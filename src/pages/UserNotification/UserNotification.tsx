@@ -71,7 +71,7 @@ function UserNotification() {
     [activeTab],
   );
 
-  const pageCount = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  // const pageCount = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
 
   const pageItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
