@@ -7,44 +7,49 @@ import ProductSearch from "@/pages/ProductSearch";
 import ProductDetail from "@/pages/ProductDetail";
 import UserSellingPost from "@/pages/UserSellingPost";
 import NotFoundPage from "@/pages/NotFoundPage";
+import KichHoatTaiKhoan from "@/pages/KichHoatTaiKhoan";
 
 const publicRoutes = [
-    {
-        index: true,
-        element: <Home/>,
-    },
-    {
-        path: "login",
-        element: <Login/>,
-    },
-    {
-        path: "register",
-        element: <Register/>,
-    },
-    {
-        path: "checkout",
-        element: <Checkout/>
-    },
-    {
-        path: "search",
-        element: <ProductSearch/>
-    },
-    {
-        path: "cart",
-        element: <Cart/>,
-    },
-    {
-        path: "/product/:id",
-        element: <ProductDetail/>
-    },
-    {
-      path: "selling-post",
-      element: <UserSellingPost/>
-    },
-    {
-        path: "*",
-        element: <NotFoundPage/>
-    }
+  {
+    index: true,
+    element: <Home />,
+  },
+  {
+    path: "login",
+    element: <Login />,
+  },
+  {
+    path: "register",
+    element: <Register />,
+  },
+  {
+    path: "checkout",
+    element: <Checkout />,
+  },
+  {
+    path: "search",
+    element: <ProductSearch />,
+  },
+  {
+    path: "cart",
+    element: <Cart />,
+  },
+  {
+    path: "/product/:id",
+    element: <ProductDetail />,
+  },
+  {
+    path: "selling-post",
+    element: <UserSellingPost />,
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />,
+  },
+  {
+    path: "/kich-hoat/:maKichHoat",
+    element: <KichHoatTaiKhoan />,
+  },
 ];
 
 export default publicRoutes;
