@@ -4,6 +4,7 @@ import SocialAuthButtons from "@/components/common/SocialAuthButtons";
 import { Link } from "react-router-dom";
 import ORDivider from "@/components/common/ORDivider.tsx";
 import { useState } from "react";
+import Loading from "@/components/common/Loading";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -74,9 +75,8 @@ const Register = () => {
       } else {
         setMessage(data.message || "Đăng ký thành công.");
       }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      setError(message || "Có lỗi xảy ra");
+    } catch (error) {
+      setError("Có lỗi xảy ra");
     } finally {
       setIsLoading(false);
     }
@@ -168,11 +168,7 @@ const Register = () => {
           </div>
         </form>
 
-        {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
-          </div>
-        )}
+        {isLoading && <Loading />}
       </div>
     </div>
   );
