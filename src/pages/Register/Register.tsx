@@ -55,7 +55,7 @@ const Register = () => {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APIT_MAIN}/api/auth/dang-ky`,
+        `${import.meta.env.VITE_API_MAIN_URL}/auth/dang-ky`,
         {
           method: "POST",
           headers: {
