@@ -43,12 +43,13 @@ function Login() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_APIT_MAIN}/api/auth/dang-nhap`,
+        `${import.meta.env.VITE_API_MAIN_URL}/auth/dang-nhap`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify({ email, password }),
         },
       );
