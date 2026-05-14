@@ -33,6 +33,7 @@ const AuthInput: React.FC<AuthInputProps> = ({
     text-[14px]
     placeholder:text-brand-placeholder
     focus:outline-none focus:ring-1 focus:ring-brand-accent
+     border border-gray-300
   "
       />
     </div>
