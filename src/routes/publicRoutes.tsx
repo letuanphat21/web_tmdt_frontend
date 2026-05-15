@@ -8,6 +8,7 @@ import ProductDetail from "@/pages/ProductDetail";
 import UserSellingPost from "@/pages/UserSellingPost";
 import NotFoundPage from "@/pages/NotFoundPage";
 import KichHoatTaiKhoan from "@/pages/KichHoatTaiKhoan";
+import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
 
 const publicRoutes = [
   {
@@ -18,6 +19,7 @@ const publicRoutes = [
     path: "login",
     element: <Login />,
   },
+  { path: "forgot-password", element: <ForgotPassword /> },
   {
     path: "register",
     element: <Register />,
