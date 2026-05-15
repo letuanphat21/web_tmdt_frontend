@@ -10,7 +10,7 @@ function KichHoatTaiKhoan() {
 
   useEffect(() => {
     fetch(
-      `${import.meta.env.VITE_API_MAIN_URL}/api/auth/kich-hoat?ma=${maKichHoat}`,
+      `${import.meta.env.VITE_API_MAIN_URL}/auth/kich-hoat?ma=${maKichHoat}`,
       {
         method: "GET",
         headers: {
