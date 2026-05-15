@@ -4,20 +4,18 @@ import ProductSection from "./sections/ProductSection";
 import SellerSection from "./sections/SellerSection";
 
 const Home = () => {
-    return (
-        <div className="flex flex-col gap-5">
+  return (
+    <div className="flex flex-col gap-5">
+      <Hero />
 
-            <Hero/>
+      <Categories />
 
-            <Categories/>
+      <ProductSection title="Sản phẩm mới đăng" />
+      <ProductSection title="Sản phẩm bán chạy nhất" />
 
-            <ProductSection title="Sản phẩm mới đăng"/>
-            <ProductSection title="Sản phẩm bán chạy nhất"/>
-
-            <SellerSection/>
-
-        </div>
-    );
+      <SellerSection />
+    </div>
+  );
 };
 
 export default Home;

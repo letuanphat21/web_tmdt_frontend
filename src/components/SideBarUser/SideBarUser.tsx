@@ -12,8 +12,39 @@ import {
 } from "lucide-react";
 import HorizontalDivider from "../common/HorizontalDivider";
 import MenuItem from "./MenuItem/MenuItem";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import authSlice from "@/redux/authSlice/authSlice";
+import Loading from "../common/Loading";
 
 function SideBarUser() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const handleLogout = () => {
+    setIsLoading(true);
+    fetch(import.meta.env.VITE_API_MAIN_URL + "/auth/dang-xuat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+      .then((res) => {
+        if (res.ok) {
+          localStorage.removeItem("token");
+          dispatch(authSlice.actions.logout());
+          navigate("/");
+        }
+      })
+      .catch((err) => {
+        console.error("Logout failed:", err);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
   return (
     <div className="pt-8 flex flex-col gap-2">
       <span className="p-2">Cài đặt</span>
@@ -24,7 +55,7 @@ function SideBarUser() {
         text="Hồ sơ của tôi"
       />
       <MenuItem
-        to="/messages"
+        to="/profile/messages"
         icon={<MessageCircle size={20} />}
         text="Tin nhắn"
       />
@@ -54,7 +85,7 @@ function SideBarUser() {
         text="Thêm sản phẩm"
       />
       <MenuItem
-        to="/products"
+        to="/profile/products"
         icon={<List size={20} />}
         text="Tất cả sản phẩm"
       />
@@ -76,10 +107,14 @@ function SideBarUser() {
       />
 
       <div className="mt-4 flex items-center justify-center">
-        <button className="bg-[#4E6A4E] text-white px-5 h-10 rounded-full font-medium w-fit hover:cursor-pointer hover:opacity-80">
+        <button
+          onClick={handleLogout}
+          className="bg-[#4E6A4E] text-white px-5 h-10 rounded-full font-medium w-fit hover:cursor-pointer hover:opacity-80"
+        >
           Đăng xuất
         </button>
       </div>
+      {isLoading && <Loading />}
     </div>
   );
 }

@@ -1,0 +1,53 @@
+import { createSlice } from "@reduxjs/toolkit";
+import type AuthState from "./AuthState";
+import { jwtDecode } from "jwt-decode";
+import type Token from "@/model/Token";
+import type User from "@/model/User";
+
+const getInitialState = (): AuthState => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    try {
+      const decodedToken = jwtDecode(token) as Token;
+      const userInfo: User = {
+        email: decodedToken.sub,
+        role: decodedToken.roles,
+        token: decodedToken,
+      };
+      return {
+        isAuthenticated: true,
+        user: userInfo,
+      };
+    } catch (error) {
+      localStorage.removeItem("token");
+    }
+  }
+  return {
+    isAuthenticated: false,
+    user: null,
+  };
+};
+
+//Quá ngu nha misaki
+// const initialState: AuthState = {
+//   isAuthenticated: false,
+//   user: null,
+// };
+
+const initialState: AuthState = getInitialState();
+
+const authSlice = createSlice({
+  name: "auth",
+  initialState,
+  reducers: {
+    login: (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload;
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+    },
+  },
+});
+export default authSlice;
