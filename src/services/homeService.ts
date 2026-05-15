@@ -1,0 +1,55 @@
+import axios from 'axios';
+
+const API = axios.create({
+  baseURL: 'http://localhost:8080/api/home'
+});
+
+export interface Category {
+  maTheLoai: number;
+  tenTheLoai: string;
+  soSanPham: number;
+}
+
+export interface Product {
+  maSanPham: number;
+  tenSanPham: string;
+  giaSanPham: number;
+  soLuong: number;
+  hinhAnhDaiDien: string;
+  tenTheLoai: string;
+  maTheLoai: number;
+  tenNguoiBan: string;
+  danhGia: number;
+}
+
+export interface ProductResponse {
+  content: Product[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+}
+
+export interface Seller {
+  maNguoiDung: number;
+  hoTen: string;
+  email: string;
+  soDienThoai: string;
+  diaChi: string;
+  avatar: string;
+  soSanPham: number;
+  danhGiaXepHang: number;
+}
+
+export interface HeroData {
+  title: string;
+  description: string;
+}
+
+export const getHeroData = () => API.get('/hero');
+export const getCategories = () => API.get<{ data: Category[] }>('/categories');
+export const getNewestProducts = (limit: number = 10) => 
+  API.get<{ data: Product[] }>('/products/newest', { params: { limit } });
+export const getBestSellingProducts = (page: number = 0, size: number = 10) => 
+  API.get<{ data: ProductResponse }>('/products/best-selling', { params: { page, size } });
+export const getTopSellers = (limit: number = 8) => 
+  API.get<{ data: Seller[] }>('/sellers/top-rated', { params: { limit } });
