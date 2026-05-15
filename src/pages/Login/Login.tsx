@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import AuthInput from "@/components/common/AuthInput";
 import AuthButton from "@/components/common/AuthButton";
 import SocialAuthButtons from "@/components/common/SocialAuthButtons";
@@ -13,9 +13,11 @@ import authSlice from "@/redux/authSlice/authSlice";
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  // Đọc lỗi từ OAuth2 failure redirect (?error=...)
+  const [error, setError] = useState(searchParams.get("error") ?? "");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
