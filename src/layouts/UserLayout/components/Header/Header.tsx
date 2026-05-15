@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Bell, Search, ShoppingCart } from "lucide-react";
 import { useSelector } from "react-redux";
+import UserDropdown from "./UserDropdown/UserDropdown";
 
 const Header = () => {
   const user = useSelector((state: any) => state.auth.user);
@@ -32,14 +33,7 @@ const Header = () => {
         <div className="flex items-center gap-6">
           {/* 🔥 USER / LOGIN */}
           {user ? (
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
-                {user.name ? user.name.charAt(0) : user.email.charAt(0)}
-              </div>
-              <span className="text-sm font-medium">
-                {user.name || user.email}
-              </span>
-            </div>
+            <UserDropdown user={user} />
           ) : (
             <Link to="/login" className="text-sm font-medium text-[#4E6A4E]">
               Đăng nhập

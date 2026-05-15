@@ -24,7 +24,7 @@ function SideBarUser() {
         text="Hồ sơ của tôi"
       />
       <MenuItem
-        to="/messages"
+        to="/profile/messages"
         icon={<MessageCircle size={20} />}
         text="Tin nhắn"
       />
@@ -54,7 +54,7 @@ function SideBarUser() {
         text="Thêm sản phẩm"
       />
       <MenuItem
-        to="/products"
+        to="/profile/products"
         icon={<List size={20} />}
         text="Tất cả sản phẩm"
       />
