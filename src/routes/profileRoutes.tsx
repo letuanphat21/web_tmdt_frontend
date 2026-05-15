@@ -7,27 +7,27 @@ import UserWallet from "@/pages/UserWallet/UserWallet";
 // import UserSellingPost from "@/pages/UserSellingPost";
 
 const profileRoutes = [
-    {
-        path: "information",
-        element: <UserProfile/>,
-    },
-    {
-        path: "wallet",
-        element: <UserWallet/>,
-    },
-    {path: "notifications", element: <UserNotification/>},
-    {
-        path: "promotions",
-        element: <UserPromotion/>,
-    },
-    {
-        path: "sell-orders",
-        element: <UserSellOrder/>,
-    },
-    {
-      path: "buy-orders",
-      element: <UserBuyOrder/>
-    },
+  {
+    path: "profile/information",
+    element: <UserProfile />,
+  },
+  {
+    path: "profile/wallet",
+    element: <UserWallet />,
+  },
+  { path: "profile/notifications", element: <UserNotification /> },
+  {
+    path: "profile/promotions",
+    element: <UserPromotion />,
+  },
+  {
+    path: "profile/sell-orders",
+    element: <UserSellOrder />,
+  },
+  {
+    path: "profile/buy-orders",
+    element: <UserBuyOrder />,
+  },
   // {
   //   path: "selling-post",
   //   element: <UserSellingPost/>
