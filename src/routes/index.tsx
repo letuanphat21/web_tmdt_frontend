@@ -11,6 +11,11 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <UserLayout />, // Load Header và Footer chung của OReMA
+    // errorElement: (
+    //   <div className="text-3xl flex m-auto ">
+    //     Đã có lỗi xảy ra. Vui lòng thử lại sau.
+    //   </div>
+    // ),
     children: [
       ...publicRoutes, // Các trang public (Home, Login, Search, Detail...)
       {
