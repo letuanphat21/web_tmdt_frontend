@@ -55,7 +55,8 @@ const ProductSection = ({ title }: ProductSectionProps) => {
         );
     }
 
-    const mockProducts = products.map(p => ({
+    const mappedProducts = products.map(p => ({
+        id: p.maSanPham,
         title: p.tenSanPham,
         price: `${p.giaSanPham.toLocaleString('vi-VN')}đ`,
         seller: `@${p.tenNguoiBan}`,
@@ -77,8 +78,8 @@ const ProductSection = ({ title }: ProductSectionProps) => {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-                {mockProducts.map((item, i) => (
-                    <ProductCard key={i} {...item} />
+                {mappedProducts.map((item) => (
+                    <ProductCard key={item.id} {...item} />
                 ))}
             </div>
 
