@@ -3,26 +3,16 @@ import Categories from "./sections/Categories";
 import ProductSection from "./sections/ProductSection";
 import SellerSection from "./sections/SellerSection";
 import { useSearchParams } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import authSlice from "@/redux/authSlice/authSlice";
-import { jwtDecode } from "jwt-decode";
-import type Token from "@/model/Token";
-import type User from "@/model/User";
+import { useGetProfile } from "@/hooks/useGetProfile";
 
 const Home = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const dispatch = useDispatch();
+  const getProfile = useGetProfile();
   if (token) {
     localStorage.setItem("token", token);
-    const decodedToken = jwtDecode(token) as Token;
-    let userInfo: User = {
-      email: decodedToken.sub,
-      role: decodedToken.roles,
-      token: decodedToken,
-    };
-    dispatch(authSlice.actions.login(userInfo));
-    // Xóa ?token= khỏi URL để không lộ token trong browser history
+    // const decodedToken = jwtDecode(token) as Token;
+    getProfile(token);
     window.history.replaceState({}, document.title, "/");
   }
 

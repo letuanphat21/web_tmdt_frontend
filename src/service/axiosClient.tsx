@@ -23,7 +23,7 @@ axiosClient.interceptors.request.use(
 // Response interceptor: Xử lý khi token hết hạn (401)
 axiosClient.interceptors.response.use(
   (response) => {
-    return response;
+    return response.data;
   },
   async (error) => {
     const originalRequest = error.config;
