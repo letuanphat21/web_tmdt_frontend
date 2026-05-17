@@ -4,23 +4,20 @@ import AuthButton from "@/components/common/AuthButton";
 import SocialAuthButtons from "@/components/common/SocialAuthButtons";
 import ORDivider from "@/components/common/ORDivider.tsx";
 import { useState, type SyntheticEvent } from "react";
-import { useDispatch } from "react-redux";
 import Loading from "@/components/common/Loading";
 import { jwtDecode } from "jwt-decode";
 import type Token from "@/model/Token";
-import type User from "@/model/User";
-import authSlice from "@/redux/authSlice/authSlice";
+import { useGetProfile } from "@/hooks/useGetProfile";
 
 function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Đọc lỗi từ OAuth2 failure redirect (?error=...)
   const [error, setError] = useState(searchParams.get("error") ?? "");
   const [passwordError, setPasswordError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch();
+  const getProfile = useGetProfile();
 
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
@@ -60,14 +57,11 @@ function Login() {
         setError(data.message || "Đăng nhập thất bại. Vui lòng thử lại.");
       }
       const { token } = data.data;
+
       localStorage.setItem("token", token);
       const decodedToken = jwtDecode(token) as Token;
-      let userInfo: User = {
-        email: decodedToken.sub,
-        role: decodedToken.roles,
-        token: decodedToken,
-      };
-      dispatch(authSlice.actions.login(userInfo));
+
+      getProfile(token);
       setEmail("");
       setPassword("");
       if (decodedToken.roles?.includes("ROLE_ADMIN")) {

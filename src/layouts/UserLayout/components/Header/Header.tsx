@@ -1,10 +1,14 @@
 import { Link } from "react-router-dom";
 import { Bell, Search, ShoppingCart } from "lucide-react";
 import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
 import UserDropdown from "./UserDropdown/UserDropdown";
 
 const Header = () => {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
+  const cartCount = useSelector(
+    (state: RootState) => state.cart.cart?.tongSoLuong ?? 0,
+  );
 
   return (
     <header className="w-full bg-white shadow-sm">
@@ -31,7 +35,7 @@ const Header = () => {
 
         {/* RIGHT */}
         <div className="flex items-center gap-6">
-          {/* 🔥 USER / LOGIN */}
+          {/* USER / LOGIN */}
           {user ? (
             <UserDropdown user={user} />
           ) : (
@@ -40,13 +44,19 @@ const Header = () => {
             </Link>
           )}
 
-          {/* ICONS */}
+          {/* CART ICON với badge */}
           <Link
             to="/cart"
-            className="text-gray-700 hover:text-black transition-colors"
+            className="relative text-gray-700 hover:text-black transition-colors"
           >
             <ShoppingCart size={20} className="cursor-pointer" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-[#E74C3C] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-[3px]">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            )}
           </Link>
+
           <Bell size={20} className="cursor-pointer" />
 
           {/* BUTTON */}
