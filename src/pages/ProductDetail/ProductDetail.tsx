@@ -27,7 +27,10 @@ const ProductDetail: React.FC = () => {
     setLoading(true);
     getProductDetail(id)
       .then((res) => {
-        setProduct(res.data);
+        // axiosClient.get trả về response.data, vì interceptor đã xử lý
+        // Kiểm tra xem res có phải là { data: ProductDetailDTO } hay chỉ ProductDetailDTO
+        const productData = res.data || res;
+        setProduct(productData);
         setSelectedImage(0);
       })
       .catch(() => setError("Không thể tải thông tin sản phẩm."))
@@ -168,9 +171,9 @@ const ProductDetail: React.FC = () => {
                 {product.tenSanPham}
               </h1>
               <div className="flex items-center gap-2">
-                <div className="flex">{renderStars(product.danhGia)}</div>
+                <div className="flex">{renderStars(product.danhGia || 0)}</div>
                 <span className="text-[14px] text-[#666]">
-                  {product.danhGia.toFixed(1)} ({product.soLuongDanhGia} đánh giá)
+                  {(product.danhGia || 0).toFixed(1)} ({product.soLuongDanhGia || 0} đánh giá)
                 </span>
               </div>
             </div>
@@ -178,7 +181,7 @@ const ProductDetail: React.FC = () => {
             {/* Price */}
             <div>
               <span className="text-[32px] font-bold text-[#49613E]">
-                {product.giaSanPham.toLocaleString("vi-VN")}đ
+                {(product.giaSanPham || 0).toLocaleString("vi-VN")}đ
               </span>
             </div>
 
@@ -256,7 +259,7 @@ const ProductDetail: React.FC = () => {
         {/* Reviews Section */}
         <div className="border-t border-[#E5E5E5] pt-8">
           <h2 className="text-[24px] font-bold text-[#1A1C19] mb-6">
-            Đánh giá từ khách hàng ({product.soLuongDanhGia})
+            Đánh giá từ khách hàng ({product.soLuongDanhGia || 0})
           </h2>
 
           {product.danhGias && product.danhGias.length > 0 ? (

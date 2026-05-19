@@ -27,4 +27,4 @@ export interface ProductDetailDTO {
 }
 
 export const getProductDetail = (id: number | string) =>
-  axiosClient.get<unknown, { data: ProductDetailDTO }>(`/home/products/${id}`);
+  axiosClient.get<ProductDetailDTO>(`/home/products/${id}`);
