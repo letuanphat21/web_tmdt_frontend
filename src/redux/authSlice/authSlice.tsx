@@ -57,4 +57,5 @@ const authSlice = createSlice({
   },
 });
 
+export const { login, logout, updateProfile } = authSlice.actions;
 export default authSlice;

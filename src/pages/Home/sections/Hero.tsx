@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getHeroData } from '@/services/homeService';
 import heroImg from "@/assets/hero.png";
 
@@ -13,7 +14,7 @@ const Hero = () => {
 
     useEffect(() => {
         getHeroData()
-            .then((res) => setHeroData(res.data.data))
+            .then((res) => setHeroData(res.data || res))
             .catch((err) => console.error('Error fetching hero data:', err))
             .finally(() => setLoading(false));
     }, []);
@@ -46,9 +47,9 @@ const Hero = () => {
                         {description}
                     </p>
 
-                    <button className="mt-6 px-6 h-[44px] bg-[#49613E] text-white rounded-full font-medium hover:bg-[#3a4830] transition">
+                    <Link to="/search" className="inline-block mt-6 px-6 h-[44px] bg-[#49613E] text-white rounded-full font-medium hover:bg-[#3a4830] transition leading-[44px]">
                         Mua sắm ngay →
-                    </button>
+                    </Link>
                 </div>
 
                 {/* RIGHT IMAGE */}

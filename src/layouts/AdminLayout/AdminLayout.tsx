@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "@/redux/authSlice/authSlice";
 
 // Danh sách các menu theo đúng Figma
 const adminMenus = [
@@ -15,6 +17,14 @@ const adminMenus = [
 ];
 
 const AdminLayout = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        dispatch(logout());
+        navigate("/login");
+    };
     return (
         <div className="flex h-screen bg-[#F9FAF4]">
             {/* Sidebar Trái */}
@@ -52,8 +62,27 @@ const AdminLayout = () => {
             {/* Khu vực nội dung Phải */}
             <div className="flex-1 flex flex-col overflow-hidden bg-[#F9FAF4]">
                 {/* Header Phải */}
-                <header className="h-20 flex items-center justify-end px-10">
+                <header className="h-20 flex items-center justify-between px-10 border-b border-gray-200">
                     <span className="font-bold text-[#1A1C19] text-lg">Xin chào admin</span>
+                    <button
+                        onClick={handleLogout}
+                        className="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2"
+                    >
+                        <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                        </svg>
+                        Đăng xuất
+                    </button>
                 </header>
 
                 {/* Vùng chứa nội dung các trang */}

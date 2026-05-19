@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ProductCard from "@/components/common/ProductCard";
 import { getNewestProducts, getBestSellingProducts } from '@/services/homeService';
-import type { Product } from '@/services/homeService';
+import type { Product, ProductResponse } from '@/services/homeService';
 
 interface ProductSectionProps {
     title: string;
@@ -16,25 +17,28 @@ const ProductSection = ({ title }: ProductSectionProps) => {
     const isNewest = title.toLowerCase().includes('mới');
 
     useEffect(() => {
-        setLoading(true);
-        
-        if (isNewest) {
-            getNewestProducts(10)
-                .then((res) => {
-                    setProducts(res.data.data);
+        const fetchProducts = async () => {
+            setLoading(true);
+            try {
+                if (isNewest) {
+                    const res = await getNewestProducts(10);
+                    const data = res.data ? (Array.isArray(res.data) ? res.data : res.data.data || res.data) : res;
+                    setProducts(Array.isArray(data) ? data : []);
                     setTotalPages(1);
-                })
-                .catch((err) => console.error('Error fetching newest products:', err))
-                .finally(() => setLoading(false));
-        } else {
-            getBestSellingProducts(page, 10)
-                .then((res) => {
-                    setProducts(res.data.data.content);
-                    setTotalPages(res.data.data.totalPages);
-                })
-                .catch((err) => console.error('Error fetching best-selling products:', err))
-                .finally(() => setLoading(false));
-        }
+                } else {
+                    const res = await getBestSellingProducts(page, 10);
+                    const pageData = (res.data?.data || res.data) as ProductResponse;
+                    setProducts(pageData.content || []);
+                    setTotalPages(pageData.totalPages || 1);
+                }
+            } catch (err) {
+                console.error('Error fetching products:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
     }, [page, isNewest]);
 
     if (loading) {
@@ -55,26 +59,29 @@ const ProductSection = ({ title }: ProductSectionProps) => {
         );
     }
 
-    const mappedProducts = products.map(p => ({
-        id: p.maSanPham,
-        title: p.tenSanPham,
-        price: `${p.giaSanPham.toLocaleString('vi-VN')}đ`,
-        seller: `@${p.tenNguoiBan}`,
-        image: p.hinhAnhDaiDien || '/images/placeholder.jpg',
-        tag: `${p.danhGia.toFixed(1)}⭐`,
-    }));
+    // Đoạn xử lý map dữ liệu tự động làm sạch chuỗi ảnh đại diện
+    const mappedProducts = products.map(p => {
+        return {
+            id: p.maSanPham,
+            title: p.tenSanPham,
+            price: `${p.giaSanPham.toLocaleString('vi-VN')}đ`,
+            seller: `@${p.tenNguoiBan}`,
+            // Nếu có link Supabase thì dùng, không thì lấy ảnh mặc định
+            image: p.hinhAnhDaiDien ? p.hinhAnhDaiDien : '/images/placeholder.jpg',
+            tag: `${p.danhGia.toFixed(1)}⭐`,
+            maxQuantity: p.soLuong,
+        };
+    });
 
     return (
         <section className="w-full px-6 lg:px-10">
-
             <div className="flex justify-between items-center">
                 <h2 className="text-xl font-semibold text-[#4E6A4E]">
                     {title}
                 </h2>
-
-                <button className="text-sm text-gray-600 hover:text-gray-900">
+                <Link to="/search" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                     Xem tất cả →
-                </button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
@@ -105,7 +112,6 @@ const ProductSection = ({ title }: ProductSectionProps) => {
                     </button>
                 </div>
             )}
-
         </section>
     );
 };

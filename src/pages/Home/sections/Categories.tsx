@@ -8,7 +8,11 @@ const Categories = () => {
 
     useEffect(() => {
         getCategories()
-            .then((res) => setCategories(res.data.data))
+            .then((res) => {
+                // Backend trả về { data: [...] } hoặc trực tiếp array
+                const data = res.data ? (Array.isArray(res.data) ? res.data : res.data.data || res.data) : res;
+                setCategories(Array.isArray(data) ? data : []);
+            })
             .catch((err) => console.error('Error fetching categories:', err))
             .finally(() => setLoading(false));
     }, []);

@@ -8,7 +8,10 @@ const SellerSection = () => {
 
     useEffect(() => {
         getTopSellers(8)
-            .then((res) => setSellers(res.data.data))
+            .then((res) => {
+                const data = res.data ? (Array.isArray(res.data) ? res.data : res.data.data || res.data) : res;
+                setSellers(Array.isArray(data) ? data : []);
+            })
             .catch((err) => console.error('Error fetching sellers:', err))
             .finally(() => setLoading(false));
     }, []);

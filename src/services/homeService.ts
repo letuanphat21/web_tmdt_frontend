@@ -1,7 +1,8 @@
-import axios from 'axios';
+import publicAxios from '@/service/publicAxios';
 
-const API = axios.create({
-  baseURL: 'http://localhost:8080/api/home'
+// Sử dụng publicAxios với baseURL /api/home
+const API = publicAxios.create({
+  baseURL: `${publicAxios.defaults.baseURL}/home`
 });
 
 export interface Category {
