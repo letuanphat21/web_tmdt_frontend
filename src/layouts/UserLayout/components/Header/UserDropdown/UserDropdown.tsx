@@ -116,7 +116,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
             <div className="h-px bg-gray-100 my-1 mx-2"></div>
 
             <Link
-              to="/add-product"
+              to="/selling-post"
               className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 transition-colors"
             >
               <CirclePlus size={16} className="text-gray-500" />
@@ -124,7 +124,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
             </Link>
 
             <Link
-              to="/add-product"
+              to="/profile/product-sell"
               className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 transition-colors"
             >
               <List size={16} className="text-gray-500" />

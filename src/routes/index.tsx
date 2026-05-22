@@ -5,6 +5,7 @@ import ProfileLayout from "@/layouts/ProfileLayout/ProfileLayout";
 import ProfileRoute from "./ProfileRoute";
 import profileRoutes from "./profileRoutes";
 import adminRoutes from "./adminRoutes";
+import UserSellingPost from "@/pages/UserSellingPost/UserSellingPost";
 
 const router = createBrowserRouter([
   // --- KHU VỰC 1: DÀNH CHO KHÁCH HÀNG ---
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
             path: "",
             element: <ProfileLayout />,
             children: profileRoutes, // Các trang cá nhân (Đơn hàng, Ví...)
+          },
+          {
+            path: "selling-post",
+            element: <UserSellingPost />,
           },
         ],
       },
