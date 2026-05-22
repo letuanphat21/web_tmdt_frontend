@@ -40,10 +40,7 @@ const publicRoutes = [
     path: "/product/:id",
     element: <ProductDetail />,
   },
-  {
-    path: "selling-post",
-    element: <UserSellingPost />,
-  },
+
   {
     path: "*",
     element: <NotFoundPage />,

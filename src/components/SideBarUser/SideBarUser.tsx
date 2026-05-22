@@ -86,7 +86,7 @@ function SideBarUser() {
         text="Thêm sản phẩm"
       />
       <MenuItem
-        to="/profile/products"
+        to="/profile/product-sell"
         icon={<List size={20} />}
         text="Tất cả sản phẩm"
       />
