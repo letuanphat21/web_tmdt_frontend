@@ -20,7 +20,7 @@ export async function uploadAvatar(
   file: File,
   userEmail: string,
 ): Promise<string> {
-  const bucket = import.meta.env.VITE_SUPABASE_BUCKET || "profile";
+  const bucket = import.meta.env.VITE_SUPABASE_BUCKET_PROFILE || "profile";
   const ext = file.name.split(".").pop() ?? "jpg";
   const safeEmail = userEmail.replace(/[@.]/g, "_");
   const fileName = `${safeEmail}_${Date.now()}.${ext}`;
