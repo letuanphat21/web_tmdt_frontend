@@ -30,6 +30,7 @@ function SideBarUser() {
         "Content-Type": "application/json",
         authorization: `Bearer ${localStorage.getItem("token")}`,
       },
+      credentials: "include",
     })
       .then((res) => {
         if (res.ok) {
@@ -80,7 +81,7 @@ function SideBarUser() {
       <span className="p-2">Bán hàng</span>
 
       <MenuItem
-        to="/add-product"
+        to="/selling-post"
         icon={<CirclePlus size={20} />}
         text="Thêm sản phẩm"
       />

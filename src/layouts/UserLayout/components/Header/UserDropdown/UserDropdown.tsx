@@ -37,6 +37,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
         "Content-Type": "application/json",
         authorization: `Bearer ${localStorage.getItem("token")}`,
       },
+      credentials: "include",
     })
       .then((res) => {
         if (res.ok) {

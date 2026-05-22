@@ -54,7 +54,9 @@ function Login() {
       );
       const data = await response.json();
       if (!response.ok) {
+        console.log(data.message);
         setError(data.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+        return;
       }
       const { token } = data.data;
 

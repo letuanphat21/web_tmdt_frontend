@@ -51,7 +51,7 @@ const Header = () => {
           >
             <ShoppingCart size={20} className="cursor-pointer" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] bg-[#E74C3C] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-[3px]">
+              <span className="absolute -top-2 -right-2 min-w-4.5 h-4.5 bg-[#E74C3C] text-white text-[10px] font-bold rounded-full flex items-center justify-center px-[3px]">
                 {cartCount > 99 ? "99+" : cartCount}
               </span>
             )}
@@ -64,7 +64,7 @@ const Header = () => {
             to="/selling-post"
             className="text-gray-700 hover:text-black transition-colors"
           >
-            <button className="bg-[#4E6A4E] text-white px-5 h-10 rounded-full font-medium">
+            <button className="bg-[#4E6A4E] text-white px-5 h-10 rounded-full font-medium hover:cursor-pointer">
               Đăng bán
             </button>
           </Link>
