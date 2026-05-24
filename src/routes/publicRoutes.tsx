@@ -9,6 +9,7 @@ import UserSellingPost from "@/pages/UserSellingPost";
 import NotFoundPage from "@/pages/NotFoundPage";
 import KichHoatTaiKhoan from "@/pages/KichHoatTaiKhoan";
 import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
+import VNPayReturn from "@/pages/VNPayReturn";
 
 const publicRoutes = [
   {
@@ -48,6 +49,10 @@ const publicRoutes = [
   {
     path: "/kich-hoat/:maKichHoat",
     element: <KichHoatTaiKhoan />,
+  },
+  {
+    path: "/payment/vnpay/return",
+    element: <VNPayReturn />,
   },
 ];
 

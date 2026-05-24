@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import type { RootState, AppDispatch } from "@/redux/store";
 import { resetCart } from "@/redux/cartSlice/cartSlice";
 import { taoDonHang } from "@/services/orderService";
+import { taoUrlThanhToanVNPay } from "@/services/vnpayService";
 import ShippingInfo from "./sections/ShippingInfo";
 import PaymentMethod from "./sections/PaymentMethod";
 import OrderSummary from "./sections/OrderSummary";
@@ -24,7 +25,7 @@ export type CartItem = {
   image: string;
 };
 
-export type PaymentType = "cod";
+export type PaymentType = "cod" | "vnpay";
 
 const SHIPPING_FEE = 30000;
 
@@ -47,7 +48,6 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Redirect nếu chưa đăng nhập hoặc giỏ trống
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
@@ -76,7 +76,6 @@ const Checkout = () => {
     );
   }
 
-  // Map cart items sang CartItem type cho OrderSummary
   const cartItems: CartItem[] = cart.items.map((item) => ({
     id: item.maItem,
     name: item.tenSanPham,
@@ -93,35 +92,35 @@ const Checkout = () => {
       .filter(Boolean)
       .join(", ");
 
-    if (!diaChi.trim()) {
-      setError("Vui lòng nhập địa chỉ nhận hàng.");
-      return;
-    }
-    if (!shipping.hoTen.trim()) {
-      setError("Vui lòng nhập họ tên người nhận.");
-      return;
-    }
-    if (!shipping.soDienThoai.trim()) {
-      setError("Vui lòng nhập số điện thoại.");
-      return;
-    }
+    if (!diaChi.trim()) { setError("Vui lòng nhập địa chỉ nhận hàng."); return; }
+    if (!shipping.hoTen.trim()) { setError("Vui lòng nhập họ tên người nhận."); return; }
+    if (!shipping.soDienThoai.trim()) { setError("Vui lòng nhập số điện thoại."); return; }
 
     setLoading(true);
     setError(null);
 
     try {
+      // Bước 1: Tạo đơn hàng
       const res = await taoDonHang({
         diaChiNhanHang: `${shipping.hoTen} | ${shipping.soDienThoai} | ${diaChi}`,
         chiPhiGiaoHang: SHIPPING_FEE,
+        phuongThucThanhToan: payment === "vnpay" ? "VNPAY" : "COD",
       });
 
-      // Xóa cart trong Redux sau khi đặt hàng thành công
-      dispatch(resetCart());
+      const maDonHang = res.data.maDonHang;
 
-      // Chuyển sang trang đơn mua với thông báo thành công
-      navigate("/profile/buy-orders", {
-        state: { successOrderId: res.data.maDonHang },
-      });
+      if (payment === "vnpay") {
+        // Bước 2a: Lấy URL VNPAY rồi redirect
+        const vnpRes = await taoUrlThanhToanVNPay(maDonHang);
+        dispatch(resetCart());
+        window.location.href = vnpRes.data.paymentUrl;
+      } else {
+        // Bước 2b: COD → về trang đơn mua
+        dispatch(resetCart());
+        navigate("/profile/buy-orders", {
+          state: { successOrderId: maDonHang },
+        });
+      }
     } catch {
       setError("Đặt hàng thất bại. Vui lòng thử lại.");
     } finally {

@@ -175,6 +175,13 @@ const ProductSearch = () => {
   };
 
   // Handle add to cart
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const showToast = (type: "success" | "error", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 2500);
+  };
+
   const handleAddToCart = async (product: Product) => {
     const quantity = quantities[product.maSanPham] || 1;
     try {
@@ -184,19 +191,25 @@ const ProductSearch = () => {
           soLuong: quantity,
         }),
       );
-      alert(`Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
+      showToast("success", `Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
       setQuantities((prev) => ({
         ...prev,
         [product.maSanPham]: 1,
       }));
     } catch (err) {
       console.error("Lỗi thêm vào giỏ hàng:", err);
-      alert("Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
+      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
     }
   };
 
   return (
     <div className="bg-[#F9FAF4] min-h-screen py-8">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium transition-all ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}>
+          {toast.type === "success" ? "✓" : "✕"} {toast.msg}
+        </div>
+      )}
       <div className="max-w-[1200px] mx-auto px-6">
         {/* SEARCH BAR */}
         <div className="mb-8 flex gap-4">

@@ -25,6 +25,7 @@ export interface DonHangDTO {
 export interface TaoDonHangRequest {
   diaChiNhanHang: string;
   chiPhiGiaoHang: number;
+  phuongThucThanhToan?: string; // "COD" | "VNPAY"
 }
 
 export const taoDonHang = (data: TaoDonHangRequest) =>
