@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import useEmblaCarousel from 'embla-carousel-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/redux/store';
 import ProductCard from "@/components/common/ProductCard";
 import { getNewestProducts, getBestSellingProducts } from '@/services/homeService';
 import type { Product, ProductResponse } from '@/services/homeService';
@@ -9,27 +13,58 @@ interface ProductSectionProps {
 }
 
 const ProductSection = ({ title }: ProductSectionProps) => {
+    const [emblaRef, emblaApi] = useEmblaCarousel({
+        align: 'start',
+        loop: false,
+        skipSnaps: false,
+    });
+    const [canScrollPrev, setCanScrollPrev] = useState(false);
+    const [canScrollNext, setCanScrollNext] = useState(false);
+
+    const user = useSelector((state: RootState) => state.auth.user);
+    const userEmail = user?.email || "";
+
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [page, setPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
 
     const isNewest = title.toLowerCase().includes('mới');
+
+    useEffect(() => {
+        if (!emblaApi) return;
+        
+        const onSelect = () => {
+            setCanScrollPrev(emblaApi.canScrollPrev());
+            setCanScrollNext(emblaApi.canScrollNext());
+        };
+        
+        emblaApi.on('select', onSelect);
+        emblaApi.on('reInit', onSelect);
+        
+        // Call once on mount
+        onSelect();
+        
+        return () => {
+            emblaApi.off('select', onSelect);
+            emblaApi.off('reInit', onSelect);
+        };
+    }, [emblaApi]);
+
+    const scrollPrev = () => emblaApi?.scrollPrev();
+    const scrollNext = () => emblaApi?.scrollNext();
 
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
                 if (isNewest) {
-                    const res = await getNewestProducts(10);
+                    const res = await getNewestProducts(10, userEmail);
                     const data = res.data ? (Array.isArray(res.data) ? res.data : res.data.data || res.data) : res;
                     setProducts(Array.isArray(data) ? data : []);
-                    setTotalPages(1);
                 } else {
-                    const res = await getBestSellingProducts(page, 10);
+                    // Lấy sản phẩm bán chạy nhất (page 0, 10 sản phẩm)
+                    const res = await getBestSellingProducts(0, 10, userEmail);
                     const pageData = (res.data?.data || res.data) as ProductResponse;
                     setProducts(pageData.content || []);
-                    setTotalPages(pageData.totalPages || 1);
                 }
             } catch (err) {
                 console.error('Error fetching products:', err);
@@ -39,7 +74,7 @@ const ProductSection = ({ title }: ProductSectionProps) => {
         };
 
         fetchProducts();
-    }, [page, isNewest]);
+    }, [isNewest, userEmail]);
 
     if (loading) {
         return (
@@ -74,44 +109,52 @@ const ProductSection = ({ title }: ProductSectionProps) => {
     });
 
     return (
-        <section className="w-full px-6 lg:px-10">
-            <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold text-[#4E6A4E]">
+        <section className="w-full px-6 lg:px-10 py-8 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div className="flex flex-col items-center mb-8 relative">
+                <h2 className="text-3xl font-bold text-[#4E6A4E] italic tracking-wide">
                     {title}
                 </h2>
-                <Link to="/search" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    Xem tất cả →
+                <Link to="/search" className="absolute right-0 text-sm font-medium text-[#4E6A4E] hover:text-[#3a5c31] transition-colors flex items-center gap-1">
+                    Xem tất cả <span className="text-lg">→</span>
                 </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
-                {mappedProducts.map((item) => (
-                    <ProductCard key={item.id} {...item} />
-                ))}
-            </div>
-
-            {/* Pagination */}
-            {!isNewest && totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8">
-                    <button
-                        onClick={() => setPage(Math.max(0, page - 1))}
-                        disabled={page === 0}
-                        className="px-4 py-2 bg-[#49613E] text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-[#3a4830] transition"
-                    >
-                        ← Trước
-                    </button>
-                    <span className="px-4 py-2 text-gray-700 font-medium">
-                        Trang {page + 1} / {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                        disabled={page >= totalPages - 1}
-                        className="px-4 py-2 bg-[#49613E] text-white rounded disabled:bg-gray-400 disabled:cursor-not-allowed hover:bg-[#3a4830] transition"
-                    >
-                        Tiếp →
-                    </button>
+            {/* Carousel Container */}
+            <div className="relative -mx-6 lg:-mx-10 px-6 lg:px-10">
+                <div 
+                    className="overflow-hidden"
+                    ref={emblaRef}
+                >
+                    <div className="flex gap-6">
+                        {mappedProducts.map((item) => (
+                            <div key={item.id} className="flex-[0_0_calc(50%-12px)] md:flex-[0_0_calc(25%-18px)]">
+                                <ProductCard {...item} />
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            )}
+
+                {/* Navigation Buttons */}
+                {products.length > 0 && (
+                    <>
+                        <button
+                            onClick={scrollPrev}
+                            disabled={!canScrollPrev}
+                            className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#4E6A4E] text-white shadow-lg hover:bg-[#3a5c31] disabled:opacity-30 disabled:cursor-not-allowed transition-all z-10"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        
+                        <button
+                            onClick={scrollNext}
+                            disabled={!canScrollNext}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-[#4E6A4E] text-white shadow-lg hover:bg-[#3a5c31] disabled:opacity-30 disabled:cursor-not-allowed transition-all z-10"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+                    </>
+                )}
+            </div>
         </section>
     );
 };

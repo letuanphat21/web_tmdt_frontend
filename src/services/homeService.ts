@@ -48,9 +48,9 @@ export interface HeroData {
 
 export const getHeroData = () => API.get('/hero');
 export const getCategories = () => API.get<{ data: Category[] }>('/categories');
-export const getNewestProducts = (limit: number = 10) => 
-  API.get<{ data: Product[] }>('/products/newest', { params: { limit } });
-export const getBestSellingProducts = (page: number = 0, size: number = 10) => 
-  API.get<{ data: ProductResponse }>('/products/best-selling', { params: { page, size } });
+export const getNewestProducts = (limit: number = 10, excludeEmail?: string) => 
+  API.get<{ data: Product[] }>('/products/newest', { params: { limit, excludeEmail } });
+export const getBestSellingProducts = (page: number = 0, size: number = 10, excludeEmail?: string) => 
+  API.get<{ data: ProductResponse }>('/products/best-selling', { params: { page, size, excludeEmail } });
 export const getTopSellers = (limit: number = 8) => 
   API.get<{ data: Seller[] }>('/sellers/top-rated', { params: { limit } });
