@@ -27,3 +27,14 @@ export const getDoanhThuTheoDanhMuc = async (maSeller: number, thang: number, na
     });
     return response as unknown as DoanhThuDanhMuc[];
 };
+
+// --- API CHO VÍ VÀ RÚT TIỀN THẬT ---
+export const getThongTinVi = async (maNguoiDung: number): Promise<{ soDu: number; lichSu: any[] }> => {
+    return await axiosClient.get(`/api/vi/${maNguoiDung}`);
+};
+
+export const postRutTien = async (maNguoiDung: number, soTien: number): Promise<any> => {
+    return await axiosClient.post(`/api/vi/${maNguoiDung}/rut-tien`, null, {
+        params: { soTien }
+    });
+};
