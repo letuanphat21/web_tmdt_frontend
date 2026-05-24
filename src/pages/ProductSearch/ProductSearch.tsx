@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
+import { useSearchParams } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
 import type { AppDispatch } from "@/redux/store";
 import { ShoppingCart } from "lucide-react";
@@ -27,24 +28,36 @@ interface Status {
 
 const ProductSearch = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
 
   // Quantity state for add to cart
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
 
+  // Initialize selectedCategories from URL parameter
+  const getInitialCategories = () => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      const categoryId = parseInt(categoryParam, 10);
+      if (!isNaN(categoryId)) {
+        return [categoryId];
+      }
+    }
+    return [];
+  };
+
   // Filter states
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>(getInitialCategories());
   const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
 
-  // Load initial data
+  // Load initial data (categories, statuses, products)
   useEffect(() => {
     // Lấy danh sách sản phẩm
     fetch("http://localhost:8080/api/products/search")
@@ -52,7 +65,6 @@ const ProductSearch = () => {
       .then((data) => {
         const productsData = data.data.content || [];
         setAllProducts(productsData);
-        setProducts(productsData);
       })
       .catch((err) => console.error("Lỗi products:", err));
 
@@ -70,8 +82,8 @@ const ProductSearch = () => {
       .catch((err) => console.error("Lỗi filters:", err));
   }, []);
 
-  // Apply filters and search
-  useEffect(() => {
+  // Apply filters and search using useMemo
+  const products = useMemo(() => {
     let filtered = [...allProducts];
 
     // Filter by search term
@@ -113,7 +125,7 @@ const ProductSearch = () => {
     }
     // Default: "newest" - keep original order
 
-    setProducts(filtered);
+    return filtered;
   }, [
     searchTerm,
     selectedCategories,

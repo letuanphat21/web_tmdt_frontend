@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Home, ArrowLeft } from 'lucide-react';
 
 const NotFoundPage: React.FC = () => {
@@ -31,13 +31,13 @@ const NotFoundPage: React.FC = () => {
                         Quay lại
                     </button>
 
-                    <Link
-                        to="/public"
+                    <button
+                        onClick={() => navigate('/')}
                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-[#4d5e45] text-white font-medium rounded-lg hover:bg-[#3A4930] transition-colors shadow-sm"
                     >
                         <Home className="w-4 h-4" />
                         Về Trang chủ
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>
