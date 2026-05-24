@@ -114,7 +114,7 @@ const Cart: React.FC = () => {
             ) : (
               items.map((item) => (
                 <div key={item.maItem} className="flex bg-[#f5f5f5] p-6 rounded-md">
-                  <div className="w-32 h-40 bg-white mr-6 flex-shrink-0 rounded overflow-hidden">
+                  <div className="w-28 h-28 bg-white mr-6 flex-shrink-0 rounded-lg overflow-hidden">
                     {item.hinhAnh ? (
                       <img
                         src={item.hinhAnh}

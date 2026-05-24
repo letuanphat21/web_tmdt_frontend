@@ -31,6 +31,12 @@ const AdminUsers = () => {
   const [tempStatus, setTempStatus] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const showToast = (type: "success" | "error", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 2500);
+  };
 
   // Load người dùng từ API
   const loadUsers = async (page: number, search?: string) => {
@@ -104,13 +110,13 @@ const AdminUsers = () => {
       setIsDeleting(true);
       try {
         await deleteUser(userToDelete.maNguoiDung);
-        alert("Xóa người dùng thành công!");
+        showToast("success", "Xóa người dùng thành công!");
         setIsDeleteModalOpen(false);
         setUserToDelete(null);
         loadUsers(currentPage, searchTerm);
       } catch (err) {
         console.error("Lỗi xóa người dùng:", err);
-        alert("Không thể xóa người dùng. Vui lòng thử lại!");
+        showToast("error", "Không thể xóa người dùng. Vui lòng thử lại!");
       } finally {
         setIsDeleting(false);
       }
@@ -123,13 +129,13 @@ const AdminUsers = () => {
       setIsSaving(true);
       try {
         await updateUserStatus(selectedUser.maNguoiDung, tempStatus);
-        alert("Cập nhật trạng thái thành công!");
+        showToast("success", "Cập nhật trạng thái thành công!");
         setIsDetailModalOpen(false);
         setSelectedUser(null);
         loadUsers(currentPage, searchTerm);
       } catch (err) {
         console.error("Lỗi cập nhật trạng thái:", err);
-        alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
+        showToast("error", "Không thể cập nhật trạng thái. Vui lòng thử lại!");
       } finally {
         setIsSaving(false);
       }
@@ -149,6 +155,12 @@ const AdminUsers = () => {
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pt-4 pb-8">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}>
+          {toast.type === "success" ? "✓" : "✕"} {toast.msg}
+        </div>
+      )}
       {/* 1. Breadcrumb */}
       <div className="flex items-center gap-3 text-sm px-4">
         <span className="text-gray-500">Kênh ADMIN</span>
