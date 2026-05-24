@@ -1,4 +1,4 @@
-import ListProductPendingTable from "./ListProductPendingTable/Table";
+import ListProductPendingTable from "./ListProductPendingTable/ListProductPendingTable";
 
 function AdminContent() {
   return (
