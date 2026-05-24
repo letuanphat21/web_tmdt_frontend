@@ -80,9 +80,7 @@ async function buildImagePayload(state: ImageEditorState) {
     images,
     finalImages,
     changed:
-      deleteImageIds.length > 0 ||
-      images.length > 0 ||
-      state.added.length > 0,
+      deleteImageIds.length > 0 || images.length > 0 || state.added.length > 0,
   };
 }
 
@@ -214,146 +212,148 @@ function UserProductSellEditModal({ product, onClose, onSaved }: Props) {
 
   return (
     <>
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={saving ? undefined : onClose}
-    >
       <div
-        className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+        onClick={saving ? undefined : onClose}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
-          <h2 className="text-lg font-bold text-brand-heading">
-            Chỉnh sửa sản phẩm
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
-          {error && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </p>
-          )}
-
-          <UserProductSellImageEditor
-            initialImages={product.images}
-            onChange={handleImageChange}
-          />
-
-          <ListCategory
-            categoryId={form.categoryId}
-            handleChange={handleChange}
-          />
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold">Tên sản phẩm</label>
-            <input
-              type="text"
-              value={form.tenSanPham}
-              onChange={(e) => handleChange("tenSanPham", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-            />
-          </div>
-
-          <ListCondition formData={form} handleChange={handleChange} />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Số lượng</label>
-              <input
-                type="number"
-                min={product.soLuongDaBan}
-                value={form.soLuong}
-                onChange={(e) =>
-                  handleChange("soLuong", Math.max(0, Number(e.target.value)))
-                }
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-              />
-              {product.soLuongDaBan > 0 && (
-                <p className="text-xs text-gray-400">
-                  Tối thiểu: {product.soLuongDaBan} (đã bán)
-                </p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Giá bán (VNĐ)</label>
-              <input
-                type="number"
-                min={1}
-                value={form.giaBan || ""}
-                onChange={(e) => handleChange("giaBan", Number(e.target.value))}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-sm font-semibold">Mô tả</label>
-            <textarea
-              rows={3}
-              value={form.moTa}
-              onChange={(e) => handleChange("moTa", e.target.value)}
-              className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Màu sắc</label>
-              <input
-                type="text"
-                value={form.mauSac}
-                onChange={(e) => handleChange("mauSac", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Thương hiệu</label>
-              <input
-                type="text"
-                value={form.thuongHieu}
-                onChange={(e) => handleChange("thuongHieu", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-sm font-semibold">Kích cỡ</label>
-              <input
-                type="text"
-                value={form.kichThuoc}
-                onChange={(e) => handleChange("kichThuoc", e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+        <div
+          className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
+            <h2 className="text-lg font-bold text-brand-heading">
+              Chỉnh sửa sản phẩm
+            </h2>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-[#3d4938] disabled:opacity-60"
-            >
-              {saving ? "Đang lưu..." : "Lưu thay đổi"}
+              <X className="h-5 w-5" />
             </button>
           </div>
-        </form>
+
+          <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
+            {error && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            <UserProductSellImageEditor
+              initialImages={product.images}
+              onChange={handleImageChange}
+            />
+
+            <ListCategory
+              categoryId={form.categoryId}
+              handleChange={handleChange}
+            />
+
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Tên sản phẩm</label>
+              <input
+                type="text"
+                value={form.tenSanPham}
+                onChange={(e) => handleChange("tenSanPham", e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              />
+            </div>
+
+            <ListCondition formData={form} handleChange={handleChange} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold">Số lượng</label>
+                <input
+                  type="number"
+                  min={product.soLuongDaBan}
+                  value={form.soLuong}
+                  onChange={(e) =>
+                    handleChange("soLuong", Math.max(0, Number(e.target.value)))
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+                {product.soLuongDaBan > 0 && (
+                  <p className="text-xs text-gray-400">
+                    Tối thiểu: {product.soLuongDaBan} (đã bán)
+                  </p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-semibold">Giá bán (VNĐ)</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.giaBan || ""}
+                  onChange={(e) =>
+                    handleChange("giaBan", Number(e.target.value))
+                  }
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-sm font-semibold">Mô tả</label>
+              <textarea
+                rows={3}
+                value={form.moTa}
+                onChange={(e) => handleChange("moTa", e.target.value)}
+                className="w-full resize-none rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="space-y-1">
+                <label className="text-sm font-semibold">Màu sắc</label>
+                <input
+                  type="text"
+                  value={form.mauSac}
+                  onChange={(e) => handleChange("mauSac", e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-semibold">Thương hiệu</label>
+                <input
+                  type="text"
+                  value={form.thuongHieu}
+                  onChange={(e) => handleChange("thuongHieu", e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-semibold">Kích cỡ</label>
+                <input
+                  type="text"
+                  value={form.kichThuoc}
+                  onChange={(e) => handleChange("kichThuoc", e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-primary focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full border border-gray-200 px-5 py-2 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-full bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-[#3d4938] disabled:opacity-60"
+              >
+                {saving ? "Đang lưu..." : "Lưu thay đổi"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-    {saving && <Loading />}
+      {saving && <Loading />}
     </>
   );
 }
