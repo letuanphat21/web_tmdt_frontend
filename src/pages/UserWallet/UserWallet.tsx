@@ -1,8 +1,14 @@
 import { useMemo, useState, useEffect } from "react";
 // Import thư viện vẽ biểu đồ
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-// Import 2 API vừa định nghĩa
-import { getDoanhThuTheoDanhMuc, getDoanhThuSeller, type DoanhThuDanhMuc, type DoanhThuNgay } from '@/services/thongKeService';
+// Import các API từ service
+import {
+    getDoanhThuTheoDanhMuc,
+    getDoanhThuSeller,
+    getThongTinVi,
+    postRutTien,
+    type DoanhThuDanhMuc
+} from '@/services/thongKeService';
 
 type Transaction = {
     id: number;
@@ -12,25 +18,6 @@ type Transaction = {
     amount: string;
     type: "inflow" | "outflow";
 };
-
-const sampleTransactions: Transaction[] = [
-    {
-        id: 1,
-        date: "2026-04-29",
-        detail: "Nhận tiền tháng 1",
-        status: "Thành công",
-        amount: "- 1.250.000đ",
-        type: "outflow",
-    },
-    {
-        id: 2,
-        date: "2026-04-27",
-        detail: "Nhận hoa hồng bán hàng",
-        status: "Hoàn thành",
-        amount: "+ 2.000.000đ",
-        type: "inflow",
-    },
-];
 
 // Bảng màu Tone xanh lá (Match với OReMA)
 const COLORS = ['#49613E', '#809B71', '#A6C496', '#CDE5C0', '#34D399'];
@@ -47,30 +34,70 @@ function UserWallet() {
     const [dailyData, setDailyData] = useState<any[]>([]);
     const [loadingDaily, setLoadingDaily] = useState(false);
 
-    // Giả định ID Seller đang đăng nhập (có thể thay bằng Redux/Context sau này)
+    // 3. State cho Số dư và Lịch sử giao dịch THẬT từ Database
+    const [balance, setBalance] = useState<number>(0);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [loadingWallet, setLoadingWallet] = useState(false);
+
+    // 4. State cho Modal Rút tiền
+    const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+    const [withdrawAmount, setWithdrawAmount] = useState<string>("");
+    const [withdrawError, setWithdrawError] = useState<string>("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Giả định ID Seller/User đang đăng nhập
     const maSeller = 1;
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
-    // Gọi đồng thời cả 2 API khi load trang
+    // Hàm gọi API lấy thông tin Ví (Số dư & Lịch sử) từ DB
+    const fetchWalletInfo = async () => {
+        setLoadingWallet(true);
+        try {
+            const res = await getThongTinVi(maSeller);
+            // Phòng thủ nếu res hoặc res.soDu không tồn tại
+            setBalance(res?.soDu ?? 0);
+
+            if (res && res.lichSu) {
+                // Map dữ liệu từ Entity GiaoDich của Backend sang cấu trúc hiển thị của Frontend
+                const mappedList: Transaction[] = res.lichSu.map((item: any) => {
+                    const dateObj = new Date(item.ngayTao);
+                    const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
+                    return {
+                        id: item.id,
+                        date: formattedDate,
+                        detail: item.moTa,
+                        status: item.trangThai,
+                        amount: `${item.loaiGiaoDich === 'inflow' ? '+' : '-'} ${item.soTien.toLocaleString('vi-VN')}đ`,
+                        type: item.loaiGiaoDich
+                    };
+                });
+                setTransactions(mappedList);
+            }
+        } catch (error) {
+            console.error("Lỗi khi lấy thông tin ví thật từ DB:", error);
+        } finally {
+            setLoadingWallet(false);
+        }
+    };
+
+    // Gọi đồng thời tất cả API khi load trang
     useEffect(() => {
         const fetchData = async () => {
             setLoadingCategories(true);
             setLoadingDaily(true);
             try {
-                // Lấy dữ liệu cho Bánh Donut (tháng trước, năm sau)
+                // Lấy dữ liệu cho Bánh Donut
                 const resCat = await getDoanhThuTheoDanhMuc(maSeller, currentMonth, currentYear);
                 setCategoryData(resCat);
 
-                // Lấy dữ liệu cho Biểu đồ Cột (NĂM TRƯỚC, THÁNG SAU - Đúng hàm của bạn)
+                // Lấy dữ liệu cho Biểu đồ Cột
                 const resDaily = await getDoanhThuSeller(maSeller, currentYear, currentMonth);
-                // Format lại chữ "Ngày" cho hiển thị đẹp trên trục X
                 const formattedDaily = resDaily.map(item => ({
                     name: `Ngày ${item.ngay}`,
                     doanhThu: item.doanhThu
                 }));
                 setDailyData(formattedDaily);
-
             } catch (error) {
                 console.error("Lỗi khi lấy dữ liệu thống kê:", error);
             } finally {
@@ -78,8 +105,47 @@ function UserWallet() {
                 setLoadingDaily(false);
             }
         };
+
         fetchData();
+        fetchWalletInfo(); // Chạy hàm lấy thông tin ví
     }, [currentMonth, currentYear]);
+
+    // Xử lý hành động rút tiền thật xuống DB
+    const handleWithdraw = async () => {
+        const amount = Number(withdrawAmount);
+
+        // Validate Frontend nhanh trước khi bắn request
+        if (!withdrawAmount || amount <= 0) {
+            setWithdrawError("Vui lòng nhập số tiền hợp lệ.");
+            return;
+        }
+        if (amount < 50000) {
+            setWithdrawError("Số tiền rút tối thiểu là 50.000đ.");
+            return;
+        }
+        if (amount > balance) {
+            setWithdrawError("Số dư tài khoản không đủ.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // Bắn request POST xuống Spring Boot để trừ tiền thật
+            await postRutTien(maSeller, amount);
+
+            // Nếu thành công -> Đóng modal và tải lại dữ liệu mới nhất từ DB lên
+            setIsWithdrawModalOpen(false);
+            setWithdrawAmount("");
+            setWithdrawError("");
+            await fetchWalletInfo(); // Gọi hàm này để số dư tự tụt và bảng lịch sử tự cập nhật dòng mới
+        } catch (error: any) {
+            // Đọc lỗi trả về từ Backend nếu có
+            const errMsg = error?.response?.data || "Rút tiền thất bại. Vui lòng thử lại.";
+            setWithdrawError(errMsg);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // Tính tổng để chia % cho biểu đồ tròn
     const totalCategoryRevenue = useMemo(() => {
@@ -94,7 +160,7 @@ function UserWallet() {
     };
 
     const filteredTransactions = useMemo(() => {
-        return sampleTransactions.filter((transaction) => {
+        return transactions.filter((transaction) => {
             const transactionDate = new Date(transaction.date);
             const from = fromDate ? new Date(fromDate) : null;
             const to = toDate ? new Date(toDate) : null;
@@ -102,12 +168,12 @@ function UserWallet() {
             if (to && transactionDate > to) return false;
             return true;
         });
-    }, [fromDate, toDate]);
+    }, [fromDate, toDate, transactions]);
 
     const transactionCount = filteredTransactions.length;
 
     return (
-        <div className="py-16 px-12">
+        <div className="py-16 px-12 relative">
             <div className="flex flex-col gap-3">
                 <div className="text-sm text-slate-500">
                     Trang chủ &gt; Tiền của tôi
@@ -118,17 +184,27 @@ function UserWallet() {
             </div>
 
             <div className="grid grid-cols-3 gap-4 mt-8">
-                <div className="rounded-3xl bg-[#ECF9E7] p-6 shadow-sm">
-                    <div className="flex items-center justify-between text-sm text-slate-600">
-                        <span>Số dư của bạn</span>
-                        <span className="text-xl">💰</span>
+                {/* Ô SỐ DƯ THẬT KÈM NÚT RÚT TIỀN */}
+                <div className="rounded-3xl bg-[#ECF9E7] p-6 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center justify-between text-sm text-slate-600">
+                            <span>Số dư của bạn</span>
+                            <span className="text-xl">💰</span>
+                        </div>
+                        <div className="mt-4 text-4xl font-extrabold text-slate-900">
+                            {loadingWallet ? "..." : `${(balance || 0).toLocaleString('vi-VN')}₫`}
+                        </div>
+                        <div className="mt-2 text-sm text-emerald-700">
+                            ↑ Tăng 15% so với tháng trước
+                        </div>
                     </div>
-                    <div className="mt-6 text-4xl font-extrabold text-slate-900">
-                        12.500.000₫
-                    </div>
-                    <div className="mt-2 text-sm text-emerald-700">
-                        ↑ Tăng 15% so với tháng trước
-                    </div>
+
+                    <button
+                        onClick={() => setIsWithdrawModalOpen(true)}
+                        className="mt-6 w-full rounded-full bg-[#49613E] py-3 text-sm font-bold text-white transition hover:bg-[#384a2f] active:scale-95"
+                    >
+                        Rút tiền
+                    </button>
                 </div>
 
                 <div className="rounded-3xl bg-[#ECF9E7] p-6 shadow-sm">
@@ -153,7 +229,7 @@ function UserWallet() {
             </div>
 
             <div className="grid grid-cols-12 gap-4 mt-8">
-                {/* --- KHU VỰC 1: BIỂU ĐỒ CỘT (DOANH THU THEO NGÀY) --- */}
+                {/* --- KHU VỰC 1: BIỂU ĐỒ CỘT --- */}
                 <div className="col-span-8 rounded-[24px] bg-[#ECF9E7] p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                         <div>
@@ -174,38 +250,17 @@ function UserWallet() {
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                                    <XAxis
-                                        dataKey="name"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#64748B' }}
-                                        dy={10}
-                                    />
-                                    <YAxis
-                                        tickFormatter={(value) => `${(value / 1000)}k`} // Rút gọn 500.000 thành 500k cho đẹp
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fontSize: 12, fill: '#64748B' }}
-                                        dx={-10}
-                                    />
-                                    <Tooltip
-                                        formatter={tooltipFormatter}
-                                        cursor={{ fill: '#F1F5F9' }}
-                                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                    />
-                                    <Bar
-                                        dataKey="doanhThu"
-                                        fill="#49613E"
-                                        radius={[6, 6, 0, 0]}
-                                        barSize={40}
-                                    />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
+                                    <YAxis tickFormatter={(value) => `${(value / 1000)}k`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dx={-10} />
+                                    <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    <Bar dataKey="doanhThu" fill="#49613E" radius={[6, 6, 0, 0]} barSize={40} />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
                     </div>
                 </div>
 
-                {/* --- KHU VỰC 2: BIỂU ĐỒ TRÒN (TỶ LỆ DANH MỤC) --- */}
+                {/* --- KHU VỰC 2: BIỂU ĐỒ TRÒN --- */}
                 <div className="col-span-4 rounded-3xl bg-[#ECF9E7] p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                         <div>
@@ -227,24 +282,12 @@ function UserWallet() {
                                 <div className="relative flex items-center justify-center mb-6 h-48">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
-                                            <Pie
-                                                data={categoryData}
-                                                cx="50%"
-                                                cy="50%"
-                                                innerRadius={50}
-                                                outerRadius={80}
-                                                paddingAngle={3}
-                                                dataKey="doanhThu"
-                                                nameKey="tenDanhMuc"
-                                            >
+                                            <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="doanhThu" nameKey="tenDanhMuc">
                                                 {categoryData.map((_entry, index) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                                                 ))}
                                             </Pie>
-                                            <Tooltip
-                                                formatter={tooltipFormatter}
-                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                            />
+                                            <Tooltip formatter={tooltipFormatter} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -255,10 +298,7 @@ function UserWallet() {
                                         return (
                                             <div key={index} className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
-                                        <span
-                                            className="w-3 h-3 rounded-full"
-                                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                                        ></span>
+                                                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                                                     <span className="font-medium">{item.tenDanhMuc}</span>
                                                 </div>
                                                 <span className="font-bold">{percent}%</span>
@@ -272,7 +312,7 @@ function UserWallet() {
                 </div>
             </div>
 
-            {/* --- BẢNG GIAO DỊCH (GIỮ NGUYÊN) --- */}
+            {/* --- BẢNG LỊCH SỬ GIAO DỊCH THẬT TỪ DB --- */}
             <div className="rounded-3xl bg-white p-6 shadow-sm mt-8">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
@@ -285,33 +325,14 @@ function UserWallet() {
                     </div>
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        <label className="flex flex-col gap-2 text-sm text-slate-600">
-                            Từ ngày
-                            <input
-                                type="date"
-                                value={fromDate}
-                                onChange={(event) => setFromDate(event.target.value)}
-                                className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-brand-primary"
-                            />
+                        <label className="flex flex-col gap-2 text-sm text-slate-600">Từ ngày
+                            <input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-brand-primary" />
                         </label>
-                        <label className="flex flex-col gap-2 text-sm text-slate-600">
-                            Đến ngày
-                            <input
-                                type="date"
-                                value={toDate}
-                                onChange={(event) => setToDate(event.target.value)}
-                                className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-brand-primary"
-                            />
+                        <label className="flex flex-col gap-2 text-sm text-slate-600">Đến ngày
+                            <input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} className="rounded-full border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-brand-primary" />
                         </label>
                         <div className="flex items-end">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setFromDate("");
-                                    setToDate("");
-                                }}
-                                className="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-                            >
+                            <button type="button" onClick={() => { setFromDate(""); setToDate(""); }} className="w-full rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700">
                                 Xóa bộ lọc
                             </button>
                         </div>
@@ -319,48 +340,96 @@ function UserWallet() {
                 </div>
 
                 <div className="mt-6 overflow-x-auto">
-                    <table className="w-full min-w-180 border-separate border-spacing-y-3 text-left text-sm">
-                        <thead>
-                        <tr className="text-slate-500">
-                            <th className="px-4 py-3">Ngày</th>
-                            <th className="px-4 py-3">Chi tiết</th>
-                            <th className="px-4 py-3">Trạng thái</th>
-                            <th className="px-4 py-3 text-right">Giá trị</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {filteredTransactions.map((transaction) => (
-                            <tr key={transaction.id} className="rounded-2xl bg-slate-50">
-                                <td className="px-4 py-4 text-slate-700">
-                                    {transaction.date}
-                                </td>
-                                <td className="px-4 py-4 text-slate-700">
-                                    {transaction.detail}
-                                </td>
-                                <td className="px-4 py-4 text-slate-700">
-                                    {transaction.status}
-                                </td>
-                                <td
-                                    className={`px-4 py-4 text-right font-semibold ${transaction.type === "inflow" ? "text-emerald-700" : "text-slate-900"}`}
-                                >
-                                    {transaction.amount}
-                                </td>
+                    {loadingWallet ? (
+                        <div className="text-center py-8 text-slate-500 font-medium">Đang tải danh sách lịch sử...</div>
+                    ) : (
+                        <table className="w-full min-w-180 border-separate border-spacing-y-3 text-left text-sm">
+                            <thead>
+                            <tr className="text-slate-500">
+                                <th className="px-4 py-3">Ngày</th>
+                                <th className="px-4 py-3">Chi tiết</th>
+                                <th className="px-4 py-3">Trạng thái</th>
+                                <th className="px-4 py-3 text-right">Giá trị</th>
                             </tr>
-                        ))}
-                        {filteredTransactions.length === 0 && (
-                            <tr>
-                                <td
-                                    colSpan={4}
-                                    className="px-4 py-8 text-center text-slate-500"
-                                >
-                                    Không có giao dịch phù hợp với bộ lọc.
-                                </td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {filteredTransactions.map((transaction) => (
+                                <tr key={transaction.id} className="rounded-2xl bg-slate-50">
+                                    <td className="px-4 py-4 text-slate-700">{transaction.date}</td>
+                                    <td className="px-4 py-4 text-slate-700">{transaction.detail}</td>
+                                    <td className="px-4 py-4 text-slate-700">
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${transaction.status === 'Thành công' || transaction.status === 'Hoàn thành' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+                                                {transaction.status}
+                                            </span>
+                                    </td>
+                                    <td className={`px-4 py-4 text-right font-semibold ${transaction.type === "inflow" ? "text-emerald-700" : "text-red-600"}`}>
+                                        {transaction.amount}
+                                    </td>
+                                </tr>
+                            ))}
+                            {filteredTransactions.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="px-4 py-8 text-center text-slate-500">
+                                        Không có giao dịch phù hợp với bộ lọc.
+                                    </td>
+                                </tr>
+                            )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
+
+            {/* --- MODAL POPUP RÚT TIỀN THUẦN TAILWIND --- */}
+            {isWithdrawModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Rút tiền</h2>
+                        <p className="text-sm text-slate-500 mb-6">Số dư khả dụng: <span className="font-bold text-slate-900">{(balance || 0).toLocaleString('vi-VN')}đ</span></p>
+
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Số tiền muốn rút (đ)</label>
+                            <input
+                                type="number"
+                                value={withdrawAmount}
+                                disabled={isSubmitting}
+                                onChange={(e) => {
+                                    setWithdrawAmount(e.target.value);
+                                    setWithdrawError("");
+                                }}
+                                placeholder="Tối thiểu 50.000"
+                                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-[#49613E] focus:ring-1 focus:ring-[#49613E]"
+                            />
+                            {withdrawError && (
+                                <p className="mt-2 text-sm text-red-500 font-medium">{withdrawError}</p>
+                            )}
+                        </div>
+
+                        <div className="mt-8 flex gap-3">
+                            <button
+                                type="button"
+                                disabled={isSubmitting}
+                                onClick={() => {
+                                    setIsWithdrawModalOpen(false);
+                                    setWithdrawError("");
+                                    setWithdrawAmount("");
+                                }}
+                                className="flex-1 rounded-full bg-slate-100 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleWithdraw}
+                                disabled={isSubmitting}
+                                className="flex-1 rounded-full bg-[#49613E] py-3 text-sm font-semibold text-white transition hover:bg-[#384a2f] flex justify-center items-center"
+                            >
+                                {isSubmitting ? "Đang xử lý..." : "Xác nhận rút"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
