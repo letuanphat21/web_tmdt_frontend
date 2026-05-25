@@ -74,6 +74,7 @@ function ListProductPendingTable() {
 
   function handleApprove(maSanPham: number) {
     setApprovingId(maSanPham);
+    setLoading(true);
     axiosClient
       .put<ApiMessageResponse>(`/products/${maSanPham}/approve`)
       .then((res) => {
@@ -90,6 +91,7 @@ function ListProductPendingTable() {
       })
       .finally(() => {
         setApprovingId(null);
+        setLoading(false);
       });
   }
 
@@ -113,6 +115,7 @@ function ListProductPendingTable() {
       })
       .finally(() => {
         setRejectingId(null);
+        setLoading(false);
       });
   }
 

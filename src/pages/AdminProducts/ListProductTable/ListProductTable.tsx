@@ -34,11 +34,10 @@ function ListProductTable() {
   const [totalPages, setTotalPages] = useState(1);
   const [editModal, setEditModal] = useState(false);
   const [productId, setProductId] = useState<Number | null>(null);
-
+  const [reload, setReload] = useState([]);
   useEffect(() => {
     fetchPendingProducts(currentPage);
-  }, [currentPage]);
-
+  }, [currentPage, reload]);
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(""), 3000);
@@ -294,6 +293,7 @@ function ListProductTable() {
           setEditModal={setEditModal}
           setSuccess={setSuccess}
           setData={setData}
+          setReload={setReload}
         />
       )}
     </>

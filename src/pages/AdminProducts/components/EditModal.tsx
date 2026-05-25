@@ -5,8 +5,15 @@ import ListCategory from "@/pages/AdminPostProduct/ListCategory/ListCategory";
 import ListCondition from "@/pages/AdminPostProduct/ListCondition/ListCondition";
 import ImageEditor from "./ImageEditor";
 import supabase from "@/lib/supabaseClient";
+import Loading from "@/components/common/Loading";
 
-function EditModal({ productId, setEditModal, setSuccess, setData }: any) {
+function EditModal({
+  productId,
+  setEditModal,
+  setSuccess,
+  setData,
+  setReload,
+}: any) {
   const [form, setForm] = useState<any>({
     tenSanPham: "",
     soLuong: 0,
@@ -23,6 +30,7 @@ function EditModal({ productId, setEditModal, setSuccess, setData }: any) {
   });
   const [images, setImages] = useState<any>();
   const [deleteImage, setDeleteImage] = useState<any>();
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     axiosClient
       .get(`/products/${productId}`)
@@ -54,6 +62,7 @@ function EditModal({ productId, setEditModal, setSuccess, setData }: any) {
   };
 
   const submit = async (e: any) => {
+    setLoading(true);
     e.preventDefault();
     try {
       const uploadedImages = await Promise.all(
@@ -108,10 +117,13 @@ function EditModal({ productId, setEditModal, setSuccess, setData }: any) {
             : p,
         ),
       );
+      setReload([]);
 
       setEditModal(false);
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -247,7 +259,7 @@ function EditModal({ productId, setEditModal, setSuccess, setData }: any) {
           </form>
         </div>
       </div>
-      {/* {saving && <Loading />} */}
+      {loading && <Loading />}
     </>
   );
 }
