@@ -28,3 +28,6 @@ export interface ProductDetailDTO {
 
 export const getProductDetail = (id: number | string) =>
   axiosClient.get<ProductDetailDTO>(`/home/products/${id}`);
+
+export const getProductsByCategory = (categoryId: number) =>
+  axiosClient.get<{ data: ProductDetailDTO[] }>(`/home/products/category/${categoryId}`);

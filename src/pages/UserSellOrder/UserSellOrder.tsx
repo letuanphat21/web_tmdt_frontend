@@ -125,20 +125,18 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
             </p>
             <div className="space-y-3">
               {order.chiTiet.map((item) => (
-                <div
+                <a
                   key={item.maChiTietDonHang}
-                  className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3"
+                  href={`/product/${item.maSanPham}`}
+                  className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3 hover:bg-white transition-colors"
                 >
                   <img
-                    src={
-                      item.hinhAnh ||
-                      "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"
-                    }
+                    src={item.hinhAnh || "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"}
                     alt={item.tenSanPham}
                     className="h-14 w-14 rounded-xl object-cover flex-shrink-0"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 truncate">{item.tenSanPham}</p>
+                    <p className="font-semibold text-slate-800 truncate hover:text-[#4E6A4E] transition-colors">{item.tenSanPham}</p>
                     <p className="text-xs text-slate-500">
                       {item.giaBan.toLocaleString("vi-VN")}đ × {item.soLuong}
                     </p>
@@ -146,7 +144,7 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
                   <p className="font-bold text-slate-800 flex-shrink-0">
                     {item.thanhTien.toLocaleString("vi-VN")}đ
                   </p>
-                </div>
+                </a>
               ))}
             </div>
           </div>

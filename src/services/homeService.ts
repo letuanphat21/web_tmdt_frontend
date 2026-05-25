@@ -54,3 +54,9 @@ export const getBestSellingProducts = (page: number = 0, size: number = 10, excl
   API.get<{ data: ProductResponse }>('/products/best-selling', { params: { page, size, excludeEmail } });
 export const getTopSellers = (limit: number = 8) => 
   API.get<{ data: Seller[] }>('/sellers/top-rated', { params: { limit } });
+
+/** Lấy sản phẩm của một người bán cụ thể */
+export const getProductsBySellerId = (sellerId: number, excludeProductId?: number, limit = 8) =>
+  API.get<{ data: Product[] }>(`/sellers/${sellerId}/products`, {
+    params: { limit, excludeProductId },
+  });
