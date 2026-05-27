@@ -17,6 +17,7 @@ import { useDispatch } from "react-redux";
 import authSlice from "@/redux/authSlice/authSlice";
 import { useState } from "react";
 import Loading from "@/components/common/Loading";
+import { disconnectSocket } from "@/websocket/chatSocket";
 
 interface UserDropdownProps {
   user: {
@@ -41,6 +42,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
     })
       .then((res) => {
         if (res.ok) {
+          disconnectSocket();
           localStorage.removeItem("token");
           dispatch(authSlice.actions.logout());
           navigate("/");

@@ -1,5 +1,8 @@
 function dinhDangThoiGian(thoigian: string) {
-  const date = new Date(thoigian);
+  const fixedTime = thoigian.slice(0, 23);
+
+  const date = new Date(fixedTime);
+
   const options: Intl.DateTimeFormatOptions = {
     day: "2-digit",
     month: "2-digit",
@@ -8,6 +11,8 @@ function dinhDangThoiGian(thoigian: string) {
     minute: "2-digit",
     second: "2-digit",
   };
+
   return date.toLocaleString("vi-VN", options);
 }
+
 export default dinhDangThoiGian;

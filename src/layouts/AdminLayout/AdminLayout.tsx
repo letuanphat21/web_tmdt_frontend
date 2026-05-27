@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "@/redux/authSlice/authSlice";
+import authSlice, { logout } from "@/redux/authSlice/authSlice";
+import { disconnectSocket } from "@/websocket/chatSocket";
 
 // Danh sách các menu theo đúng Figma
 const adminMenus = [
@@ -22,9 +23,26 @@ const AdminLayout = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    dispatch(logout());
-    navigate("/login");
+    fetch(import.meta.env.VITE_API_MAIN_URL + "/auth/dang-xuat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) {
+          disconnectSocket();
+          localStorage.removeItem("token");
+          dispatch(authSlice.actions.logout());
+          navigate("/");
+        }
+      })
+      .catch((err) => {
+        console.error("Logout failed:", err);
+      })
+      .finally(() => {});
   };
   return (
     <div className="flex h-screen bg-[#F9FAF4]">
