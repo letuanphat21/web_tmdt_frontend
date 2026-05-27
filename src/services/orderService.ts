@@ -22,6 +22,7 @@ export interface DonHangDTO {
   phuongThucThanhToan?: string;  // "COD" | "VNPAY"
   maDonHangCha?: number;         // group các đơn con cùng 1 lần checkout
   tenNguoiBan?: string;          // tên seller của đơn này
+  emailNguoiBan?: string;        // email seller
   chiTiet: ChiTietDonHangDTO[];
 }
 
