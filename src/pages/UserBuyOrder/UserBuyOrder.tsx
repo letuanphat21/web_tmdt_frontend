@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { getDonHangCuaUser, huyDonHang } from "@/services/orderService";
-import type { DonHangDTO } from "@/services/orderService";
-import { X, Store, CreditCard, Truck } from "lucide-react";
+import type { DonHangDTO, ChiTietDonHangDTO } from "@/services/orderService";
+import { X, Store, CreditCard, Truck, Star } from "lucide-react";
+import ReviewModal from "@/components/common/ReviewModal";
+import { kiemTraDaDanhGia } from "@/services/reviewService";
 
 /* ── CONSTANTS ─────────────────────────────────────────────────────────── */
 
@@ -31,13 +33,15 @@ const LY_DO_HUY = [
 function UserBuyOrder() {
   const location = useLocation();
   const locationState = location.state as { successOrderId?: number } | null;
-  const initialSuccessId = useRef(locationState?.successOrderId ?? null);
+  // Lấy giá trị ban đầu trực tiếp từ location.state, không dùng ref trong render
+  const [successId, setSuccessId] = useState<number | null>(
+    locationState?.successOrderId ?? null
+  );
 
   const [orders, setOrders] = useState<DonHangDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("Tất cả");
   const [currentPage, setCurrentPage] = useState(1);
-  const [successId, setSuccessId] = useState<number | null>(initialSuccessId.current);
 
   // Modal hủy đơn
   const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
@@ -46,24 +50,56 @@ function UserBuyOrder() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
+  // Modal đánh giá
+  const [reviewItem, setReviewItem] = useState<ChiTietDonHangDTO | null>(null);
+  const [daDanhGiaMap, setDaDanhGiaMap] = useState<Record<number, boolean>>({});
+
   const ITEMS_PER_PAGE = 5;
 
-  const fetchOrders = () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
-    getDonHangCuaUser()
-      .then((res) => setOrders(res.data))
-      .catch(() => setOrders([]))
-      .finally(() => setLoading(false));
-  };
+    try {
+      const res = await getDonHangCuaUser();
+      setOrders(res.data);
+
+      // Kiểm tra đã đánh giá cho các sản phẩm trong đơn "Đã duyệt" / "Đã thanh toán"
+      const duyetOrders = res.data.filter(
+        (o) => o.trangThai === "Đã duyệt" || o.trangThai === "Đã thanh toán"
+      );
+      const newMap: Record<number, boolean> = {};
+      await Promise.all(
+        duyetOrders.flatMap((order) =>
+          (order.chiTiet ?? []).map(async (ct) => {
+            try {
+              const r = await kiemTraDaDanhGia(ct.maSanPham);
+              const checked =
+                (r as unknown as { data: { daDanhGia: boolean } }).data
+                  ?.daDanhGia ?? false;
+              newMap[ct.maSanPham] = checked;
+            } catch {
+              newMap[ct.maSanPham] = false;
+            }
+          })
+        )
+      );
+      setDaDanhGiaMap(newMap);
+    } catch {
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchOrders();
-    if (initialSuccessId.current) {
-      const t = setTimeout(() => setSuccessId(null), 5000);
-      return () => clearTimeout(t);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchOrders]);
+
+  // Effect riêng cho toast thành công — dùng setTimeout để tránh setState đồng bộ
+  useEffect(() => {
+    if (!successId) return;
+    const t = setTimeout(() => setSuccessId(null), 5000);
+    return () => clearTimeout(t);
+  }, [successId]);
 
   /* ── Filter & Pagination ── */
   const filteredOrders = useMemo(() => {
@@ -165,6 +201,9 @@ function UserBuyOrder() {
                     <span className="flex items-center gap-1 text-xs text-[#4E6A4E] bg-[#E8F5E3] px-2 py-0.5 rounded-full">
                       <Store size={11} />
                       {order.tenNguoiBan}
+                      {order.emailNguoiBan && (
+                        <span className="text-[#4E6A4E]/70">· {order.emailNguoiBan}</span>
+                      )}
                     </span>
                   )}
 
@@ -186,25 +225,46 @@ function UserBuyOrder() {
               {/* Sản phẩm */}
               <div className="px-5 py-4 space-y-3">
                 {order.chiTiet?.map((ct) => (
-                  <Link key={ct.maChiTietDonHang} to={`/product/${ct.maSanPham}`}
-                    className="flex items-center gap-4 hover:bg-slate-50 rounded-xl p-2 -mx-2 transition group">
-                    <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                      {ct.hinhAnh
-                        ? <img src={ct.hinhAnh} alt={ct.tenSanPham} className="w-full h-full object-cover" />
-                        : <div className="w-full h-full bg-gray-200" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate group-hover:text-[#4E6A4E] transition">
-                        {ct.tenSanPham}
+                  <div key={ct.maChiTietDonHang} className="flex items-center gap-4">
+                    <Link to={`/product/${ct.maSanPham}`}
+                      className="flex items-center gap-4 flex-1 hover:bg-slate-50 rounded-xl p-2 -mx-2 transition group">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                        {ct.hinhAnh
+                          ? <img src={ct.hinhAnh} alt={ct.tenSanPham} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-gray-200" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 truncate group-hover:text-[#4E6A4E] transition">
+                          {ct.tenSanPham}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}đ/cái
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 flex-shrink-0">
+                        {ct.thanhTien.toLocaleString("vi-VN")}đ
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}đ/cái
-                      </p>
-                    </div>
-                    <p className="text-sm font-bold text-slate-800 flex-shrink-0">
-                      {ct.thanhTien.toLocaleString("vi-VN")}đ
-                    </p>
-                  </Link>
+                    </Link>
+
+                    {/* Nút đánh giá — chỉ hiện khi đơn "Đã duyệt" hoặc "Đã thanh toán" */}
+                    {(order.trangThai === "Đã duyệt" || order.trangThai === "Đã thanh toán") && (
+                      daDanhGiaMap[ct.maSanPham]
+                        ? (
+                          <span className="flex items-center gap-1 text-xs text-[#FFA500] font-medium flex-shrink-0">
+                            <Star size={13} className="fill-[#FFA500]" /> Đã đánh giá
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setReviewItem(ct)}
+                            className="flex items-center gap-1 text-xs text-[#4E6A4E] font-semibold
+                                       border border-[#4E6A4E] px-3 py-1.5 rounded-full
+                                       hover:bg-[#4E6A4E] hover:text-white transition flex-shrink-0"
+                          >
+                            <Star size={13} /> Đánh giá
+                          </button>
+                        )
+                    )}
+                  </div>
                 ))}
               </div>
 
@@ -253,6 +313,20 @@ function UserBuyOrder() {
             </button>
           ))}
         </div>
+      )}
+
+      {/* Modal đánh giá sản phẩm */}
+      {reviewItem && (
+        <ReviewModal
+          maSanPham={reviewItem.maSanPham}
+          tenSanPham={reviewItem.tenSanPham}
+          hinhAnh={reviewItem.hinhAnh}
+          onClose={() => setReviewItem(null)}
+          onSuccess={() => {
+            // Đánh dấu đã đánh giá ngay lập tức, không cần fetch lại
+            setDaDanhGiaMap((prev) => ({ ...prev, [reviewItem.maSanPham]: true }));
+          }}
+        />
       )}
 
       {/* Modal hủy đơn */}

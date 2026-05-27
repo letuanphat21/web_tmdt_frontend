@@ -10,6 +10,7 @@ import { getProductsBySellerId } from "@/services/homeService";
 import type { Product } from "@/services/homeService";
 import { getAISuggestions } from "@/services/aiService";
 import type { AISuggestion } from "@/services/aiService";
+import CommentSection from "@/components/common/CommentSection";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -368,6 +369,9 @@ const ProductDetail: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* ── BÌNH LUẬN ── */}
+        <CommentSection maSanPham={product.maSanPham} />
 
       </div>
     </div>
