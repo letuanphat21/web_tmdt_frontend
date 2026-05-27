@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import authSlice from "@/redux/authSlice/authSlice";
 import Loading from "../common/Loading";
+import { disconnectSocket } from "@/websocket/chatSocket";
 
 function SideBarUser() {
   const dispatch = useDispatch();
@@ -34,6 +35,7 @@ function SideBarUser() {
     })
       .then((res) => {
         if (res.ok) {
+          disconnectSocket();
           localStorage.removeItem("token");
           dispatch(authSlice.actions.logout());
           navigate("/");
