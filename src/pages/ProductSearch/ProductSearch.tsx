@@ -359,58 +359,46 @@ const ProductSearch = () => {
                 >
                   <Link to={`/product/${item.maSanPham}`} className="block">
                     <div className="h-[250px] overflow-hidden relative">
-                      <div className="absolute top-2 left-2 bg-[#49613E] text-white text-xs font-bold px-2 py-1 rounded">
+                      <div className="absolute top-2 left-2 bg-[#49613E] text-white text-xs font-bold px-2 py-1 rounded z-10">
                         {item.tenTinhTrang}
                       </div>
-
                       <img
-                        src={
-                          item.hinhAnhDaiDien
-                            ? item.hinhAnhDaiDien
-                            : "/images/placeholder.jpg"
-                        }
+                        src={item.hinhAnhDaiDien ? item.hinhAnhDaiDien : "/images/placeholder.jpg"}
                         alt={item.tenSanPham}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     </div>
-
-                    <div className="p-4">
-                      <h3 className="text-gray-800 font-semibold truncate mb-2 hover:text-[#49613E] transition-colors">
+                    <div className="px-4 pt-4 pb-2">
+                      <h3 className="text-gray-800 font-semibold truncate mb-1 group-hover:text-[#49613E] transition-colors">
                         {item.tenSanPham}
                       </h3>
-
-                      <div className="mb-3">
+                      <div className="flex justify-between items-center">
                         <span className="text-[#49613E] font-bold text-lg">
-                          {item.giaSanPham.toLocaleString('vi-VN')}đ
+                          {item.giaSanPham.toLocaleString("vi-VN")}đ
+                        </span>
+                        <span className="text-xs text-gray-500 border border-gray-200 px-2 py-1 rounded">
+                          SL: {item.soLuong}
                         </span>
                       </div>
                     </div>
                   </Link>
-
-                  <div className="p-4 pt-0">
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        max={item.soLuong}
-                        value={quantities[item.maSanPham] || 1}
-                        onChange={(e) =>
-                          handleQuantityChange(item.maSanPham, e.target.value)
-                        }
-                        className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm focus:outline-none focus:border-[#49613E]"
-                      />
-                      <button
-                        onClick={() => handleAddToCart(item)}
-                        className="flex-1 flex items-center justify-center bg-[#49613E] text-white text-sm font-semibold rounded py-2 hover:bg-[#3a4d31] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        disabled={item.soLuong === 0}
-                      >
-                        {item.soLuong === 0 ? (
-                          "Hết hàng"
-                        ) : (
-                          <ShoppingCart size={20} />
-                        )}
-                      </button>
-                    </div>
+                  <div className="flex gap-2 px-4 pb-4">
+                    <input
+                      type="number"
+                      min="1"
+                      max={item.soLuong}
+                      value={quantities[item.maSanPham] || 1}
+                      onChange={(e) => handleQuantityChange(item.maSanPham, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm focus:outline-none focus:border-[#49613E]"
+                    />
+                    <button
+                      onClick={() => handleAddToCart(item)}
+                      className="flex-1 flex items-center justify-center bg-[#49613E] text-white text-sm font-semibold rounded py-2 hover:bg-[#3a4d31] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      disabled={item.soLuong === 0}
+                    >
+                      {item.soLuong === 0 ? "Hết hàng" : <ShoppingCart size={20} />}
+                    </button>
                   </div>
                 </div>
               ))}

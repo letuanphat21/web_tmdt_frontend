@@ -19,6 +19,10 @@ export interface DonHangDTO {
   tongTien: number;
   trangThai: string;
   lyDoHuy?: string;
+  phuongThucThanhToan?: string;  // "COD" | "VNPAY"
+  maDonHangCha?: number;         // group các đơn con cùng 1 lần checkout
+  tenNguoiBan?: string;          // tên seller của đơn này
+  emailNguoiBan?: string;        // email seller
   chiTiet: ChiTietDonHangDTO[];
   sdtKhachHang?: string;
   tenShop?: string;
@@ -28,11 +32,12 @@ export interface DonHangDTO {
 export interface TaoDonHangRequest {
   diaChiNhanHang: string;
   chiPhiGiaoHang: number;
-  phuongThucThanhToan?: string; // "COD" | "VNPAY"
+  phuongThucThanhToan?: string;
 }
 
+// Backend giờ trả về List<DonHangDTO> (nhiều đơn con theo từng seller)
 export const taoDonHang = (data: TaoDonHangRequest) =>
-  axiosClient.post<unknown, { data: DonHangDTO }>("/orders", data);
+  axiosClient.post<unknown, { data: DonHangDTO[] }>("/orders", data);
 
 export const getDonHangCuaUser = () =>
   axiosClient.get<unknown, { data: DonHangDTO[] }>("/orders");

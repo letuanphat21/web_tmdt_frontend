@@ -1,27 +1,33 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { getDonHangCuaUser, huyDonHang } from "@/services/orderService";
-import type { DonHangDTO } from "@/services/orderService";
-import { X } from "lucide-react";
+import type { DonHangDTO, ChiTietDonHangDTO } from "@/services/orderService";
+import { X, Store, CreditCard, Truck, Star } from "lucide-react";
+import ReviewModal from "@/components/common/ReviewModal";
+import { kiemTraDaDanhGia } from "@/services/reviewService";
+import { chatWithSeller } from "@/services/chatService";
+import { useDispatch } from "react-redux";
+import chatSlice from "@/redux/chatSlice/chatSlice";
+
+/* ── CONSTANTS ─────────────────────────────────────────────────────────── */
 
 const tabs = [
   "Tất cả",
-  "Chờ xác nhận",
-  "Đang giao",
-  "Hoàn thành",
+  "Chờ duyệt",
+  "Đã duyệt",
+  "Đã thanh toán",
   "Đã hủy",
 ] as const;
-
 type Tab = (typeof tabs)[number];
 
 const statusColor: Record<string, string> = {
-  "Chờ xác nhận": "bg-[#FFF4E5] text-[#C2781F]",
-  "Đang giao":    "bg-[#E8F2F7] text-[#2C5A78]",
-  "Hoàn thành":   "bg-[#E8F5EB] text-[#2B6C3F]",
-  "Đã hủy":       "bg-[#FDE8E8] text-[#9D2B2B]",
+  "Chờ duyệt": "bg-[#FFF4E5] text-[#C2781F]",
+  "Đã duyệt": "bg-[#E8F2F7] text-[#2C5A78]",
+  "Đã thanh toán": "bg-[#E8F5EB] text-[#2B6C3F]",
+  "Đã hủy": "bg-[#FDE8E8] text-[#9D2B2B]",
 };
 
-const LY_DO_HUY_PHO_BIEN = [
+const LY_DO_HUY = [
   "Tôi muốn thay đổi địa chỉ giao hàng",
   "Tôi muốn thay đổi sản phẩm trong đơn",
   "Tôi đặt nhầm sản phẩm",
@@ -31,16 +37,22 @@ const LY_DO_HUY_PHO_BIEN = [
   "Lý do khác",
 ];
 
+/* ── COMPONENT ─────────────────────────────────────────────────────────── */
+
 function UserBuyOrder() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const locationState = location.state as { successOrderId?: number } | null;
+  // Lấy giá trị ban đầu trực tiếp từ location.state, không dùng ref trong render
+  const [successId, setSuccessId] = useState<number | null>(
+    locationState?.successOrderId ?? null,
+  );
+
   const [orders, setOrders] = useState<DonHangDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("Tất cả");
   const [currentPage, setCurrentPage] = useState(1);
-  const locationState = location.state as { successOrderId?: number } | null;
-  const [successId, setSuccessId] = useState<number | null>(
-    locationState?.successOrderId ?? null,
-  );
 
   // Modal hủy đơn
   const [cancelOrderId, setCancelOrderId] = useState<number | null>(null);
@@ -49,53 +61,84 @@ function UserBuyOrder() {
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const itemsPerPage = 5;
+  // Modal đánh giá
+  const [reviewItem, setReviewItem] = useState<ChiTietDonHangDTO | null>(null);
+  const [daDanhGiaMap, setDaDanhGiaMap] = useState<Record<number, boolean>>({});
 
-  // Lấy successOrderId từ location.state trước khi render (không dùng setState trong effect)
-  const initialSuccessId = useRef(locationState?.successOrderId ?? null);
+  const ITEMS_PER_PAGE = 5;
 
-  const fetchOrders = () => {
+  const fetchOrders = useCallback(async () => {
     setLoading(true);
-    getDonHangCuaUser()
-      .then((res) => setOrders(res.data))
-      .catch(() => setOrders([]))
-      .finally(() => setLoading(false));
-  };
+    try {
+      const res = await getDonHangCuaUser();
+      setOrders(res.data);
 
-  useEffect(() => {
-    if (initialSuccessId.current) {
-      const timer = setTimeout(() => setSuccessId(null), 4000);
-      fetchOrders();
-      return () => clearTimeout(timer);
+      // Kiểm tra đã đánh giá cho các sản phẩm trong đơn "Đã duyệt" / "Đã thanh toán"
+      const duyetOrders = res.data.filter(
+        (o) => o.trangThai === "Đã duyệt" || o.trangThai === "Đã thanh toán",
+      );
+      const newMap: Record<number, boolean> = {};
+      await Promise.all(
+        duyetOrders.flatMap((order) =>
+          (order.chiTiet ?? []).map(async (ct) => {
+            try {
+              const r = await kiemTraDaDanhGia(ct.maSanPham);
+              const checked =
+                (r as unknown as { data: { daDanhGia: boolean } }).data
+                  ?.daDanhGia ?? false;
+              newMap[ct.maSanPham] = checked;
+            } catch {
+              newMap[ct.maSanPham] = false;
+            }
+          }),
+        ),
+      );
+      setDaDanhGiaMap(newMap);
+    } catch {
+      setOrders([]);
+    } finally {
+      setLoading(false);
     }
-    fetchOrders();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  // Effect riêng cho toast thành công — dùng setTimeout để tránh setState đồng bộ
+  useEffect(() => {
+    if (!successId) return;
+    const t = setTimeout(() => setSuccessId(null), 5000);
+    return () => clearTimeout(t);
+  }, [successId]);
+
+  /* ── Filter & Pagination ── */
   const filteredOrders = useMemo(() => {
     if (activeTab === "Tất cả") return orders;
     return orders.filter((o) => o.trangThai === activeTab);
   }, [activeTab, orders]);
 
-  const pageCount = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
-
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredOrders.length / ITEMS_PER_PAGE),
+  );
   const pageOrders = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredOrders.slice(start, start + itemsPerPage);
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
   }, [currentPage, filteredOrders]);
 
+  /* ── Handlers ── */
   const handleTabClick = (tab: Tab) => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
 
-  const openCancelModal = (maDonHang: number) => {
-    setCancelOrderId(maDonHang);
+  const openCancelModal = (id: number) => {
+    setCancelOrderId(id);
     setSelectedReason("");
     setCustomReason("");
     setCancelError(null);
   };
-
   const closeCancelModal = () => {
     setCancelOrderId(null);
     setSelectedReason("");
@@ -105,18 +148,16 @@ function UserBuyOrder() {
 
   const handleConfirmCancel = async () => {
     if (!cancelOrderId) return;
-
-    const lyDo = selectedReason === "Lý do khác" ? customReason.trim() : selectedReason;
+    const lyDo =
+      selectedReason === "Lý do khác" ? customReason.trim() : selectedReason;
     if (!lyDo) {
       setCancelError("Vui lòng chọn hoặc nhập lý do hủy.");
       return;
     }
-
     setCancelling(true);
     setCancelError(null);
     try {
       const res = await huyDonHang(cancelOrderId, lyDo);
-      // Cập nhật lại order trong state
       setOrders((prev) =>
         prev.map((o) => (o.maDonHang === cancelOrderId ? res.data : o)),
       );
@@ -127,121 +168,211 @@ function UserBuyOrder() {
       setCancelling(false);
     }
   };
+  const handeChatSeller = async (emailOpponent: any) => {
+    try {
+      const res = (await chatWithSeller(emailOpponent)) as any;
+      console.log(res);
+      if (res.success === true) {
+        dispatch(chatSlice.actions.setConversationId(res.data.id));
+        navigate("/profile/messages");
+      }
+    } catch {
+      console.log("lỗi không tạo được conversation");
+    }
+  };
 
+  /* ── Render ── */
   return (
-    <div className="py-16 px-12">
-      <div className="flex flex-col gap-3">
-        <div className="text-sm text-slate-500">Tài khoản &gt; Đơn mua</div>
-        <h1 className="text-3xl font-extrabold text-slate-900">Đơn mua của tôi</h1>
+    <div className="py-12 px-6 md:px-12 max-w-4xl mx-auto">
+      {/* Tiêu đề */}
+      <div className="mb-6">
+        <p className="text-sm text-slate-500 mb-1">Tài khoản › Đơn mua</p>
+        <h1 className="text-2xl font-extrabold text-slate-900">
+          Đơn mua của tôi
+        </h1>
       </div>
 
+      {/* Toast thành công */}
       {successId && (
-        <div className="mt-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium">
-          ✅ Đặt hàng thành công! Mã đơn hàng: #{successId}
+        <div className="mb-5 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl text-sm font-medium flex items-center gap-2">
+          ✅ Đặt hàng thành công! Người bán sẽ sớm xác nhận đơn của bạn.
         </div>
       )}
 
       {/* Tabs */}
-      <div className="mt-8 rounded-3xl bg-[#F4FBEE] p-4 shadow-sm">
-        <div className="flex flex-wrap gap-3">
+      <div className="mb-6 rounded-2xl bg-[#F4FBEE] p-3 shadow-sm">
+        <div className="flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => handleTabClick(tab)}
-              className={`rounded-full px-5 py-3 text-sm font-semibold transition ${
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                 activeTab === tab
                   ? "bg-[#4E6A4E] text-white"
-                  : "bg-white text-slate-700 shadow-sm"
+                  : "bg-white text-slate-700 shadow-sm hover:bg-slate-50"
               }`}
             >
               {tab}
+              {tab !== "Tất cả" && (
+                <span className="ml-1.5 text-xs opacity-70">
+                  ({orders.filter((o) => o.trangThai === tab).length})
+                </span>
+              )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Danh sách đơn hàng */}
-      <div className="mt-6 space-y-4">
+      {/* Danh sách đơn */}
+      <div className="space-y-4">
         {loading ? (
-          <div className="rounded-2xl bg-[#F7FCF1] p-8 text-center text-slate-400">
+          <div className="rounded-2xl bg-[#F7FCF1] p-10 text-center text-slate-400">
             Đang tải đơn hàng...
           </div>
         ) : pageOrders.length === 0 ? (
-          <div className="rounded-2xl bg-[#F7FCF1] p-8 text-center text-slate-500">
+          <div className="rounded-2xl bg-[#F7FCF1] p-10 text-center text-slate-500">
             Không có đơn hàng nào.
           </div>
         ) : (
           pageOrders.map((order) => (
-            <div key={order.maDonHang} className="rounded-2xl bg-[#F7FCF1] p-6 shadow-sm">
-              {/* Header */}
-              <div className="mb-4 pb-4 border-b border-slate-200">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <span className="text-xs text-slate-500">Mã đơn: </span>
-                    <span className="text-sm font-bold text-slate-700">#{order.maDonHang || "N/A"}</span>
-                    <span className="ml-4 text-xs text-slate-400">{order.ngayTao || "Không có thông tin"}</span>
-                  </div>
-                  <span className={`rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap ${statusColor[order.trangThai] ?? "bg-gray-100 text-gray-600"}`}>
-                    {order.trangThai || "Không xác định"}
+            <div
+              key={order.maDonHang}
+              className="rounded-2xl bg-white border border-slate-100 shadow-sm overflow-hidden"
+            >
+              {/* Header đơn */}
+              <div className="flex items-center justify-between px-5 py-3 bg-[#F7FCF1] border-b border-slate-100">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-slate-500">
+                    Mã đơn:{" "}
+                    <span className="font-bold text-slate-700">
+                      #{order.maDonHang}
+                    </span>
                   </span>
+                  <span className="text-xs text-slate-400">
+                    {order.ngayTao}
+                  </span>
+
+                  {/* Tên seller */}
+                  {order.tenNguoiBan && (
+                    <span className="flex items-center gap-1 text-xs text-[#4E6A4E] bg-[#E8F5E3] px-2 py-0.5 rounded-full">
+                      <Store size={11} />
+                      {order.tenNguoiBan}
+                      {order.emailNguoiBan && (
+                        <span className="text-[#4E6A4E]/70">
+                          · {order.emailNguoiBan}
+                        </span>
+                      )}
+                    </span>
+                  )}
+
+                  {/* Phương thức thanh toán */}
+                  {order.phuongThucThanhToan && (
+                    <span className="flex items-center gap-1 text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                      <CreditCard size={11} />
+                      {order.phuongThucThanhToan}
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-slate-500 mb-2">
-                  Địa chỉ: <span className="font-medium text-slate-700">{order.diaChiNhanHang || "Không có thông tin"}</span>
-                </p>
-                <p className="text-xs text-slate-500">
-                  Số điện thoại: <span className="font-medium text-slate-700">{order.sdtKhachHang || "Không có thông tin"}</span>
-                </p>
+
+                {/* Trạng thái */}
+                <div className="flex flex-row justify-center items-center gap-2">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold flex-shrink-0 ${statusColor[order.trangThai] ?? "bg-gray-100 text-gray-600"}`}
+                  >
+                    {order.trangThai}
+                  </span>
+                  <div
+                    onClick={() => handeChatSeller(order.emailNguoiBan)}
+                    className="p-2 bg-gray-200 rounded-2xl hover:cursor-pointer hover:opacity-90"
+                  >
+                    Nhắn tin với shop
+                  </div>
+                </div>
               </div>
 
               {/* Sản phẩm */}
-              <div className="space-y-3 mb-4">
-                {order.chiTiet && order.chiTiet.length > 0 ? (
-                  order.chiTiet.map((ct) => (
+              <div className="px-5 py-4 space-y-3">
+                {order.chiTiet?.map((ct) => (
+                  <div
+                    key={ct.maChiTietDonHang}
+                    className="flex items-center gap-4"
+                  >
                     <Link
-                      key={ct.maChiTietDonHang}
                       to={`/product/${ct.maSanPham}`}
-                      className="flex items-center gap-4 hover:bg-white/60 rounded-xl p-2 -mx-2 transition"
+                      className="flex items-center gap-4 flex-1 hover:bg-slate-50 rounded-xl p-2 -mx-2 transition group"
                     >
-                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
                         {ct.hinhAnh ? (
-                          <img src={ct.hinhAnh} alt={ct.tenSanPham || "Sản phẩm"} className="w-full h-full object-cover" />
+                          <img
+                            src={ct.hinhAnh}
+                            alt={ct.tenSanPham}
+                            className="w-full h-full object-cover"
+                          />
+
                         ) : (
                           <div className="w-full h-full bg-gray-200" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-800 truncate hover:text-[#4E6A4E] transition">
-                          {ct.tenSanPham || "Không có tên"}
+                        <p className="text-sm font-medium text-slate-800 truncate group-hover:text-[#4E6A4E] transition">
+                          {ct.tenSanPham}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          x{ct.soLuong || 0} · {(ct.giaBan || 0).toLocaleString("vi-VN")}đ/cái
+                          x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}đ/cái
                         </p>
                       </div>
                       <p className="text-sm font-bold text-slate-800 flex-shrink-0">
-                        {(ct.thanhTien || 0).toLocaleString("vi-VN")}đ
+                        {ct.thanhTien.toLocaleString("vi-VN")}đ
                       </p>
                     </Link>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-slate-500 text-sm">
-                    Không có sản phẩm trong đơn hàng
+
+                    {/* Nút đánh giá — chỉ hiện khi đơn "Đã duyệt" hoặc "Đã thanh toán" */}
+                    {(order.trangThai === "Đã duyệt" ||
+                      order.trangThai === "Đã thanh toán") &&
+                      (daDanhGiaMap[ct.maSanPham] ? (
+                        <span className="flex items-center gap-1 text-xs text-[#FFA500] font-medium flex-shrink-0">
+                          <Star size={13} className="fill-[#FFA500]" /> Đã đánh giá
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setReviewItem(ct)}
+                          className="flex items-center gap-1 text-xs text-[#4E6A4E] font-semibold border border-[#4E6A4E] px-3 py-1.5 rounded-full hover:bg-[#4E6A4E] hover:text-white transition flex-shrink-0"
+                        >
+                          <Star size={13} /> Đánh giá
+                        </button>
+                      ))}
                   </div>
-                )}
+                ))}
               </div>
 
-              {/* Lý do hủy nếu đã hủy */}
-              {order.trangThai === "Đã hủy" && (
-                <div className="mb-4 p-3 rounded-xl bg-[#FDE8E8]">
-                  <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
-                  <p className="text-sm text-[#9D2B2B]">{order.lyDoHuy || "Không có thông tin"}</p>
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-4 bg-slate-50/50">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-xs text-slate-500 flex items-center gap-1 truncate">
+                    <Truck size={11} /> {order.diaChiNhanHang}
+                  </p>
+                  {order.trangThai === "Đã hủy" && order.lyDoHuy && (
+                    <p className="text-xs text-red-500">
+                      Lý do hủy: {order.lyDoHuy}
+                    </p>
+                  )}
                 </div>
-              )}
 
-              {/* Tóm tắt tiền */}
-              <div className="pt-4 border-t border-slate-200 space-y-2 mb-4">
-                <div className="flex justify-between text-xs">
-                  <span className="text-slate-600">Tiền hàng:</span>
-                  <span className="font-medium text-slate-700">{(order.tongTienSanPham || 0).toLocaleString("vi-VN")}đ</span>
+                <div className="flex items-center gap-3 flex-shrink-0">
+                  {order.trangThai === "Chờ duyệt" && (
+                    <button
+                      onClick={() => openCancelModal(order.maDonHang)}
+                      className="text-xs text-red-500 hover:text-red-700 font-medium border border-red-200 px-3 py-1.5 rounded-full hover:bg-red-50 transition"
+                    >
+                      Hủy đơn
+                    </button>
+                  )}
+                  <div className="text-right">
+                    <p className="text-xs text-slate-500">Tổng cộng</p>
+                    <p className="text-base font-bold text-[#4E6A4E]">
+                      {order.tongTien.toLocaleString("vi-VN")}đ
+                    </p>
+                  </div>
                 </div>
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-600">Phí vận chuyển:</span>
@@ -276,10 +407,10 @@ function UserBuyOrder() {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`h-10 w-10 rounded-full border text-sm font-semibold transition ${
+              className={`h-9 w-9 rounded-full border text-sm font-semibold transition ${
                 currentPage === i + 1
                   ? "border-[#4E6A4E] bg-[#4E6A4E] text-white"
-                  : "border-slate-300 bg-white text-slate-700"
+                  : "border-slate-300 bg-white text-slate-700 hover:border-[#4E6A4E]"
               }`}
             >
               {i + 1}
@@ -288,25 +419,43 @@ function UserBuyOrder() {
         </div>
       )}
 
+      {/* Modal đánh giá sản phẩm */}
+      {reviewItem && (
+        <ReviewModal
+          maSanPham={reviewItem.maSanPham}
+          tenSanPham={reviewItem.tenSanPham}
+          hinhAnh={reviewItem.hinhAnh}
+          onClose={() => setReviewItem(null)}
+          onSuccess={() => {
+            // Đánh dấu đã đánh giá ngay lập tức, không cần fetch lại
+            setDaDanhGiaMap((prev) => ({
+              ...prev,
+              [reviewItem.maSanPham]: true,
+            }));
+          }}
+        />
+      )}
+
       {/* Modal hủy đơn */}
       {cancelOrderId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
-            {/* Header modal */}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-bold text-slate-800">Hủy đơn hàng #{cancelOrderId}</h2>
-              <button onClick={closeCancelModal} className="text-slate-400 hover:text-slate-600">
+              <h2 className="text-lg font-bold text-slate-800">
+                Hủy đơn #{cancelOrderId}
+              </h2>
+              <button
+                onClick={closeCancelModal}
+                className="text-slate-400 hover:text-slate-600"
+              >
                 <X size={20} />
               </button>
             </div>
-
             <p className="text-sm text-slate-500 mb-4">
-              Vui lòng chọn lý do hủy đơn hàng:
+              Vui lòng chọn lý do hủy:
             </p>
-
-            {/* Danh sách lý do */}
             <div className="space-y-2 mb-4">
-              {LY_DO_HUY_PHO_BIEN.map((lyDo) => (
+              {LY_DO_HUY.map((lyDo) => (
                 <label
                   key={lyDo}
                   className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition ${
@@ -327,8 +476,6 @@ function UserBuyOrder() {
                 </label>
               ))}
             </div>
-
-            {/* Input lý do khác */}
             {selectedReason === "Lý do khác" && (
               <textarea
                 value={customReason}
@@ -338,12 +485,9 @@ function UserBuyOrder() {
                 className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4E6A4E]/30 resize-none mb-4"
               />
             )}
-
             {cancelError && (
               <p className="text-sm text-red-500 mb-3">{cancelError}</p>
             )}
-
-            {/* Buttons */}
             <div className="flex gap-3">
               <button
                 onClick={closeCancelModal}

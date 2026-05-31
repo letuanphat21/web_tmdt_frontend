@@ -8,6 +8,7 @@ import Loading from "@/components/common/Loading";
 import { jwtDecode } from "jwt-decode";
 import type Token from "@/model/Token";
 import { useGetProfile } from "@/hooks/useGetProfile";
+import { connectSocket } from "@/websocket/chatSocket";
 
 function Login() {
   const navigate = useNavigate();
@@ -61,6 +62,7 @@ function Login() {
       const { token } = data.data;
 
       localStorage.setItem("token", token);
+      connectSocket();
       const decodedToken = jwtDecode(token) as Token;
 
       getProfile(token);
@@ -72,6 +74,7 @@ function Login() {
         navigate("/");
       }
     } catch (error) {
+      console.log(error);
       setError("Có lỗi xảy ra");
     } finally {
       setIsLoading(false);

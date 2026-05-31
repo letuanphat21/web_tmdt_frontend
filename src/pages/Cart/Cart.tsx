@@ -115,25 +115,30 @@ const Cart: React.FC = () => {
               items.map((item) => (
                 <div key={item.maItem} className="flex bg-[#f5f5f5] p-6 rounded-md">
                   <div className="w-28 h-28 bg-white mr-6 flex-shrink-0 rounded-lg overflow-hidden">
-                    {item.hinhAnh ? (
-                      <img
-                        src={item.hinhAnh}
-                        alt={item.tenSanPham}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
-                        No image
-                      </div>
-                    )}
+                    <a href={`/product/${item.maSanPham}`}>
+                      {item.hinhAnh ? (
+                        <img
+                          src={item.hinhAnh}
+                          alt={item.tenSanPham}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                          No image
+                        </div>
+                      )}
+                    </a>
                   </div>
 
                   <div className="flex-1 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-start">
-                        <h3 className="text-[18px] font-medium text-[#1A1C19]">
+                        <a
+                          href={`/product/${item.maSanPham}`}
+                          className="text-[18px] font-medium text-[#1A1C19] hover:text-[#49613E] hover:underline transition-colors"
+                        >
                           {item.tenSanPham}
-                        </h3>
+                        </a>
                         <span className="font-bold text-[18px]">
                           {(item.giaSanPham * item.soLuong).toLocaleString("vi-VN")}đ
                         </span>

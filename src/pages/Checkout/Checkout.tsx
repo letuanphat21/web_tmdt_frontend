@@ -107,15 +107,15 @@ const Checkout = () => {
         phuongThucThanhToan: payment === "vnpay" ? "VNPAY" : "COD",
       });
 
-      const maDonHang = res.data.maDonHang;
+      const maDonHang = res.data[0]?.maDonHang; // lấy đơn đầu tiên để redirect
 
       if (payment === "vnpay") {
-        // Bước 2a: Lấy URL VNPAY rồi redirect
+        // Thanh toán VNPAY: lấy URL rồi redirect (dùng đơn đầu tiên)
         const vnpRes = await taoUrlThanhToanVNPay(maDonHang);
         dispatch(resetCart());
         window.location.href = vnpRes.data.paymentUrl;
       } else {
-        // Bước 2b: COD → về trang đơn mua
+        // COD → về trang đơn mua
         dispatch(resetCart());
         navigate("/profile/buy-orders", {
           state: { successOrderId: maDonHang },

@@ -137,38 +137,30 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
             <p className="mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
               Sản phẩm ({order.chiTiet?.length || 0})
             </p>
-            {order.chiTiet && order.chiTiet.length > 0 ? (
-              <div className="space-y-3">
-                {order.chiTiet.map((item) => (
-                  <div
-                    key={item.maChiTietDonHang}
-                    className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3"
-                  >
-                    <img
-                      src={
-                        item.hinhAnh ||
-                        "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"
-                      }
-                      alt={item.tenSanPham || "Sản phẩm"}
-                      className="h-14 w-14 rounded-xl object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-slate-800 truncate">{item.tenSanPham || "Không có tên"}</p>
-                      <p className="text-xs text-slate-500">
-                        {(item.giaBan || 0).toLocaleString("vi-VN")}đ × {item.soLuong || 0}
-                      </p>
-                    </div>
-                    <p className="font-bold text-slate-800 flex-shrink-0">
-                      {(item.thanhTien || 0).toLocaleString("vi-VN")}đ
+            <div className="space-y-3">
+              {order.chiTiet?.map((item) => (
+                <Link
+                  key={item.maChiTietDonHang}
+                  to={`/product/${item.maSanPham}`}
+                  className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3 hover:bg-white transition-colors"
+                >
+                  <img
+                    src={item.hinhAnh || "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"}
+                    alt={item.tenSanPham}
+                    className="h-14 w-14 rounded-xl object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-800 truncate hover:text-[#4E6A4E] transition-colors">{item.tenSanPham}</p>
+                    <p className="text-xs text-slate-500">
+                      {(item.giaBan || 0).toLocaleString("vi-VN")}đ × {item.soLuong || 0}
                     </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-2xl bg-[#F7FCF1] p-4 text-center text-slate-600">
-                Không có sản phẩm trong đơn hàng
-              </div>
-            )}
+                  <p className="font-bold text-slate-800 flex-shrink-0">
+                    {(item.thanhTien || 0).toLocaleString("vi-VN")}đ
+                  </p>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Tổng tiền */}
