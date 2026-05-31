@@ -22,6 +22,10 @@ export interface DonHangDTO {
   lyDoHuy?: string;
   chiTiet: ChiTietDonHangDTO[];
   tenKhachHang?: string;
+  sdtKhachHang?: string;
+  emailKhachHang?: string;
+  tenShop?: string;
+  sdtShop?: string;
 }
 
 interface ApiResponse<T> {

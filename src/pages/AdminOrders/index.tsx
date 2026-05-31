@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useGetAdminOrders } from "@/hooks/useGetAdminOrders";
 import { useConfirmAdminOrder } from "@/hooks/useConfirmAdminOrder";
 import { useCancelAdminOrder } from "@/hooks/useCancelAdminOrder";
+import { useUpdateOrderStatus } from "@/hooks/useUpdateOrderStatus";
 import { type DonHangDTO } from "@/hooks/useGetSellOrders";
 import { useGetOrderStatuses } from "@/hooks/useGetOrderStatuses";
 import Pagination from "@/components/common/Pagination";
@@ -33,15 +34,19 @@ interface OrderDetailModalProps {
   order: DonHangDTO;
   onClose: () => void;
   onRefresh: () => void;
+  allStatuses: Array<{ id: number; tenTrangThai: string }>;
 }
 
-function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) {
+function OrderDetailModal({ order, onClose, onRefresh, allStatuses }: OrderDetailModalProps) {
   const [showCancelForm, setShowCancelForm] = useState(false);
+  const [showStatusForm, setShowStatusForm] = useState(false);
+  const [selectedNewStatus, setSelectedNewStatus] = useState("");
   const [lyDoHuy, setLyDoHuy] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
 
   const { confirmOrder, loading: confirming } = useConfirmAdminOrder();
   const { cancelOrder, loading: cancelling } = useCancelAdminOrder();
+  const { updateStatus, loading: updating } = useUpdateOrderStatus();
 
   const isPending = order.trangThai === "Chờ duyệt";
 
@@ -68,6 +73,21 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
       onClose();
     } else {
       setActionError("Không thể hủy đơn hàng. Vui lòng thử lại.");
+    }
+  };
+
+  const handleChangeStatus = async () => {
+    if (!selectedNewStatus.trim()) {
+      setActionError("Vui lòng chọn trạng thái mới.");
+      return;
+    }
+    setActionError(null);
+    const result = await updateStatus(order.maDonHang, selectedNewStatus);
+    if (result) {
+      onRefresh();
+      onClose();
+    } else {
+      setActionError("Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
     }
   };
 
@@ -101,19 +121,36 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
         </div>
 
         <div className="p-6 space-y-5">
-          {/* Thông tin khách & giao hàng */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl bg-[#F7FCF1] p-4 text-sm">
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Khách hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.tenKhachHang || "Khách hàng"}</p>
+          {/* Thông tin Shop và Khách hàng */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Thông tin Shop */}
+            <div className="rounded-2xl bg-[#EEF2FF] p-4 space-y-2 text-sm">
+              <p className="text-xs font-semibold text-[#3730A3] uppercase tracking-wide">Thông tin Shop bán hàng</p>
+              <div className="space-y-1">
+                <p className="font-semibold text-slate-700">{order.tenShop || "Không có thông tin"}</p>
+                <p className="text-xs text-slate-600">Số điện thoại: {order.sdtShop || "Không có thông tin"}</p>
+              </div>
             </div>
+            
+            {/* Thông tin Khách hàng */}
+            <div className="rounded-2xl bg-[#F7FCF1] p-4 space-y-2 text-sm">
+              <p className="text-xs font-semibold text-[#4E6A4E] uppercase tracking-wide">Thông tin Khách hàng</p>
+              <div className="space-y-1">
+                <p className="font-semibold text-slate-700">{order.tenKhachHang || "Không có thông tin"}</p>
+                <p className="text-xs text-slate-600">Số điện thoại: {order.sdtKhachHang || "Không có thông tin"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Thông tin giao hàng */}
+          <div className="rounded-2xl bg-[#F7FCF1] p-4 space-y-3 text-sm">
             <div>
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ngày đặt</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.ngayTao}</p>
+              <p className="mt-1 font-semibold text-slate-700">{order.ngayTao || "Không có thông tin"}</p>
             </div>
-            <div className="col-span-2">
+            <div>
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Địa chỉ nhận hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang}</p>
+              <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang || "Không có thông tin"}</p>
             </div>
           </div>
 
@@ -174,6 +211,40 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
             </div>
           )}
 
+          {/* Form chuyển đổi trạng thái */}
+          {showStatusForm && (
+            <div className="rounded-2xl border border-[#E8F2F7] bg-white p-4 space-y-3">
+              <p className="text-sm font-semibold text-slate-700">Chuyển đơn hàng sang trạng thái</p>
+              <select
+                value={selectedNewStatus}
+                onChange={(e) => setSelectedNewStatus(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#4E6A4E]"
+              >
+                <option value="">-- Chọn trạng thái --</option>
+                {allStatuses.map((status) => (
+                  <option key={status.id} value={status.tenTrangThai}>
+                    {status.tenTrangThai}
+                  </option>
+                ))}
+              </select>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => { setShowStatusForm(false); setSelectedNewStatus(""); setActionError(null); }}
+                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition"
+                >
+                  Quay lại
+                </button>
+                <button
+                  onClick={handleChangeStatus}
+                  disabled={updating}
+                  className="rounded-full bg-[#3730A3] px-4 py-2 text-sm font-semibold text-white hover:bg-[#2820a0] transition disabled:opacity-50"
+                >
+                  {updating ? "Đang cập nhật..." : "Xác nhận chuyển đổi"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Form nhập lý do hủy */}
           {showCancelForm && (
             <div className="rounded-2xl border border-[#FDE8E8] bg-white p-4 space-y-3">
@@ -210,6 +281,16 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3 pt-2">
+            {/* Nút Chuyển đổi trạng thái - luôn hiển thị */}
+            {!showStatusForm && !showCancelForm && (
+              <button
+                onClick={() => setShowStatusForm(true)}
+                className="rounded-full bg-[#3730A3] px-5 py-3 text-sm font-semibold text-white hover:bg-[#2820a0] transition"
+              >
+                🔄 Chuyển đổi trạng thái
+              </button>
+            )}
+
             {/* Nhắn tin — tạm thời disabled */}
             <button
               disabled
@@ -219,7 +300,7 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
               💬 Nhắn tin với khách
             </button>
 
-            {isPending && !showCancelForm && (
+            {isPending && !showCancelForm && !showStatusForm && (
               <>
                 <button
                   onClick={handleConfirm}
@@ -442,6 +523,7 @@ const AdminOrders = () => {
                     order={selectedOrder}
                     onClose={() => setSelectedOrder(null)}
                     onRefresh={handleRefresh}
+                    allStatuses={dbStatuses || []}
                 />
             )}
 

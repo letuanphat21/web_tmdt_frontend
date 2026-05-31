@@ -31,6 +31,9 @@ const ProductSearch = () => {
   const [searchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSearchingByImage, setIsSearchingByImage] = useState(false);
 
   // Quantity state for add to cart
   const [quantities, setQuantities] = useState<{ [key: number]: number }>({});
@@ -60,7 +63,13 @@ const ProductSearch = () => {
   // Load initial data (categories, statuses, products)
   useEffect(() => {
     // Lấy danh sách sản phẩm
-    fetch("http://localhost:8080/api/products/search")
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    fetch("http://localhost:8080/api/products/search", { headers })
       .then((res) => res.json())
       .then((data) => {
         const productsData = data.data.content || [];
@@ -155,6 +164,84 @@ const ProductSearch = () => {
     // This will trigger the useEffect above due to minPrice/maxPrice state change
   };
 
+  // Handle image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn một file hình ảnh');
+        return;
+      }
+      setUploadedImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle search by image
+  const handleSearchByImage = async () => {
+    if (!uploadedImage) {
+      alert('Vui lòng chọn một hình ảnh');
+      return;
+    }
+
+    setIsSearchingByImage(true);
+    const formData = new FormData();
+    formData.append('image', uploadedImage);
+    formData.append('threshold', '0.4'); // Fixed threshold: 0.4
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const response = await fetch('http://localhost:8080/api/products/search-by-image', {
+        method: 'POST',
+        body: formData,
+        headers,
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText);
+      
+      if (!response.ok) {
+        alert(`Lỗi API: ${response.status} - ${responseText}`);
+        return;
+      }
+
+      if (!responseText) {
+        alert('Server trả về response trống');
+        return;
+      }
+
+      const data = JSON.parse(responseText);
+      console.log('Image search response:', data);
+      if (data.success) {
+        const products = data.data || [];
+        console.log('Found products:', products.length);
+        setAllProducts(products);
+        if (products.length === 0) {
+          alert('Không tìm thấy sản phẩm phù hợp (0 kết quả)');
+        }
+      } else {
+        alert('Không tìm thấy sản phẩm phù hợp: ' + data.message);
+      }
+    } catch (error) {
+      console.error('Lỗi tìm kiếm theo hình ảnh:', error);
+      alert('Lỗi khi tìm kiếm theo hình ảnh');
+    } finally {
+      setIsSearchingByImage(false);
+    }
+  };
+
   // Clear all filters
   const handleClearFilters = () => {
     setSearchTerm("");
@@ -212,23 +299,62 @@ const ProductSearch = () => {
       )}
       <div className="max-w-[1200px] mx-auto px-6">
         {/* SEARCH BAR */}
-        <div className="mb-8 flex gap-4">
-          <input
-            type="text"
-            placeholder="Tìm kiếm áo khoác, quần jean, phụ kiện..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-6 py-4 rounded-full border border-gray-300 focus:outline-none focus:border-[#49613E] shadow-sm"
-          />
+        <div className="mb-8 space-y-4">
+          <div className="flex gap-4">
+            <input
+              type="text"
+              placeholder="Tìm kiếm áo khoác, quần jean, phụ kiện..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 px-6 py-4 rounded-full border border-gray-300 focus:outline-none focus:border-[#49613E] shadow-sm"
+            />
 
-          <button
-            onClick={() => {
-              // Search is already triggered by useEffect
-            }}
-            className="px-8 py-4 bg-[#49613E] text-white rounded-full font-bold cursor-pointer hover:bg-[#3a4d31] transition-all"
-          >
-            Tìm kiếm
-          </button>
+            <button
+              onClick={() => {
+                // Search is already triggered by useEffect
+              }}
+              className="px-8 py-4 bg-[#49613E] text-white rounded-full font-bold cursor-pointer hover:bg-[#3a4d31] transition-all"
+            >
+              Tìm kiếm
+            </button>
+
+            {/* Image Search Button */}
+            <label className="px-6 py-4 bg-blue-100 text-blue-700 rounded-full font-bold cursor-pointer hover:bg-blue-200 transition-all flex items-center gap-2">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              📷 Tìm theo ảnh
+            </label>
+          </div>
+
+          {/* Image Preview and Search Button */}
+          {imagePreview && (
+            <div className="flex gap-4 items-center bg-white p-4 rounded-2xl border border-gray-200">
+              <img src={imagePreview} alt="Preview" className="w-16 h-16 rounded-lg object-cover" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-700 font-semibold">Tìm sản phẩm tương tự </p>
+              </div>
+              <button
+                onClick={handleSearchByImage}
+                disabled={isSearchingByImage}
+                className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all disabled:opacity-50"
+              >
+                {isSearchingByImage ? 'Đang tìm...' : 'Tìm kiếm'}
+              </button>
+              <button
+                onClick={() => {
+                  setUploadedImage(null);
+                  setImagePreview(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-full transition-all"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex gap-8">

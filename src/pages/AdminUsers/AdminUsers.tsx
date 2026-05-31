@@ -6,12 +6,14 @@ import {
   deleteUser,
   getHiddenUsers,
   searchHiddenUsers,
+  createUser,
 } from "@/services/adminUserService";
 import type { User } from "@/services/adminUserService";
 import AdminUsersTable from "./sections/AdminUsersTable";
 import AdminUsersPagination from "./sections/AdminUsersPagination";
 import AdminUsersDetailModal from "./sections/AdminUsersDetailModal";
 import AdminUsersDeleteModal from "./sections/AdminUsersDeleteModal";
+import AdminUsersCreateModal from "./sections/AdminUsersCreateModal";
 
 const AdminUsers = () => {
   const [activeTab, setActiveTab] = useState<"active" | "hidden">("active");
@@ -31,6 +33,8 @@ const AdminUsers = () => {
   const [tempStatus, setTempStatus] = useState<number>(0);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const showToast = (type: "success" | "error", msg: string) => {
@@ -123,6 +127,23 @@ const AdminUsers = () => {
     }
   };
 
+  // Xử lý tạo người dùng mới
+  const handleCreateUser = async (userData: Omit<User, "maNguoiDung" | "avatar">) => {
+    setIsCreating(true);
+    try {
+      await createUser(userData);
+      showToast("success", "Tạo tài khoản thành công!");
+      setIsCreateModalOpen(false);
+      setCurrentPage(0);
+      loadUsers(0, "");
+    } catch (err) {
+      console.error("Lỗi tạo người dùng:", err);
+      showToast("error", "Không thể tạo tài khoản. Vui lòng thử lại!");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   // Lưu thay đổi trạng thái
   const handleSaveStatus = async () => {
     if (selectedUser && selectedUser.trangThai !== tempStatus) {
@@ -157,7 +178,7 @@ const AdminUsers = () => {
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pt-4 pb-8">
       {/* Toast notification */}
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}>
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === "success" ? "bg-brand-primary" : "bg-red-500"}`}>
           {toast.type === "success" ? "✓" : "✕"} {toast.msg}
         </div>
       )}
@@ -211,8 +232,8 @@ const AdminUsers = () => {
       <h3 className="text-xl font-semibold text-brand-heading px-4">{tabTitle}</h3>
 
       {/* 4. Thanh Tìm kiếm */}
-      <div className="flex justify-between items-center px-4">
-        <div className="relative w-100">
+      <div className="flex justify-between items-center px-4 gap-4">
+        <div className="relative flex-1">
           <input
             type="text"
             placeholder="Tìm kiếm theo tên hoặc email..."
@@ -234,6 +255,15 @@ const AdminUsers = () => {
             />
           </svg>
         </div>
+
+        {/* Nút Thêm User */}
+        <button
+          onClick={() => setIsCreateModalOpen(true)}
+          className="px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <span>+</span>
+          <span>Thêm user</span>
+        </button>
 
         {/* Thông tin trang */}
         <div className="text-sm text-gray-600">
@@ -295,6 +325,14 @@ const AdminUsers = () => {
           setUserToDelete(null);
         }}
         onConfirm={handleConfirmDelete}
+      />
+
+      {/* Create Modal Component */}
+      <AdminUsersCreateModal
+        isOpen={isCreateModalOpen}
+        isCreating={isCreating}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreate={handleCreateUser}
       />
     </div>
   );

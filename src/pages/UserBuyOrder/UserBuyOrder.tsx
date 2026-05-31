@@ -308,6 +308,7 @@ function UserBuyOrder() {
                             alt={ct.tenSanPham}
                             className="w-full h-full object-cover"
                           />
+
                         ) : (
                           <div className="w-full h-full bg-gray-200" />
                         )}
@@ -317,8 +318,7 @@ function UserBuyOrder() {
                           {ct.tenSanPham}
                         </p>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}
-                          đ/cái
+                          x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}đ/cái
                         </p>
                       </div>
                       <p className="text-sm font-bold text-slate-800 flex-shrink-0">
@@ -331,15 +331,12 @@ function UserBuyOrder() {
                       order.trangThai === "Đã thanh toán") &&
                       (daDanhGiaMap[ct.maSanPham] ? (
                         <span className="flex items-center gap-1 text-xs text-[#FFA500] font-medium flex-shrink-0">
-                          <Star size={13} className="fill-[#FFA500]" /> Đã đánh
-                          giá
+                          <Star size={13} className="fill-[#FFA500]" /> Đã đánh giá
                         </span>
                       ) : (
                         <button
                           onClick={() => setReviewItem(ct)}
-                          className="flex items-center gap-1 text-xs text-[#4E6A4E] font-semibold
-                                       border border-[#4E6A4E] px-3 py-1.5 rounded-full
-                                       hover:bg-[#4E6A4E] hover:text-white transition flex-shrink-0"
+                          className="flex items-center gap-1 text-xs text-[#4E6A4E] font-semibold border border-[#4E6A4E] px-3 py-1.5 rounded-full hover:bg-[#4E6A4E] hover:text-white transition flex-shrink-0"
                         >
                           <Star size={13} /> Đánh giá
                         </button>
@@ -377,6 +374,26 @@ function UserBuyOrder() {
                     </p>
                   </div>
                 </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-600">Phí vận chuyển:</span>
+                  <span className="font-medium text-slate-700">{(order.chiPhiGiaoHang || 0).toLocaleString("vi-VN")}đ</span>
+                </div>
+                <div className="flex justify-between font-bold text-sm border-t border-slate-200 pt-2">
+                  <span className="text-slate-800">Tổng cộng:</span>
+                  <span className="text-[#4E6A4E]">{(order.tongTien || 0).toLocaleString("vi-VN")}đ</span>
+                </div>
+              </div>
+
+              {/* Footer - Nút hành động */}
+              <div className="flex justify-end">
+                {order.trangThai === "Chờ xác nhận" && (
+                  <button
+                    onClick={() => openCancelModal(order.maDonHang)}
+                    className="text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-1.5 rounded-full hover:bg-red-50 transition"
+                  >
+                    Hủy đơn
+                  </button>
+                )}
               </div>
             </div>
           ))

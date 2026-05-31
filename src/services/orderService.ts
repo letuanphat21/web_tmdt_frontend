@@ -24,6 +24,9 @@ export interface DonHangDTO {
   tenNguoiBan?: string;          // tên seller của đơn này
   emailNguoiBan?: string;        // email seller
   chiTiet: ChiTietDonHangDTO[];
+  sdtKhachHang?: string;
+  tenShop?: string;
+  sdtShop?: string;
 }
 
 export interface TaoDonHangRequest {

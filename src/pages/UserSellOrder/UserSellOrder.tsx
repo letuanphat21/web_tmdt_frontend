@@ -1,8 +1,12 @@
 import { useMemo, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { useGetSellOrders, type DonHangDTO } from "@/hooks/useGetSellOrders";
 import { useGetOrderStatuses, type TrangThaiDTO } from "@/hooks/useGetOrderStatuses";
 import { useConfirmSellOrder } from "@/hooks/useConfirmSellOrder";
 import { useCancelSellOrder } from "@/hooks/useCancelSellOrder";
+import { chatWithBuyer } from "@/services/chatService";
+import chatSlice from "@/redux/chatSlice/chatSlice";
 
 // ─── Tab type ────────────────────────────────────────────────────────────────
 type TabItem = TrangThaiDTO & { label: string; value: string };
@@ -37,6 +41,8 @@ interface OrderDetailModalProps {
 }
 
 function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [lyDoHuy, setLyDoHuy] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
@@ -45,6 +51,19 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
   const { cancelOrder, loading: cancelling } = useCancelSellOrder();
 
   const isPending = order.trangThai === "Chờ duyệt";
+
+  const handleChatWithBuyer = async () => {
+    try {
+      const res = (await chatWithBuyer(order.emailKhachHang)) as any;
+      console.log(res);
+      if (res.success === true) {
+        dispatch(chatSlice.actions.setConversationId(res.data.id));
+        navigate("/profile/messages");
+      }
+    } catch {
+      console.log("Lỗi không tạo được conversation");
+    }
+  };
 
   const handleConfirm = async () => {
     setActionError(null);
@@ -103,31 +122,45 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
 
         <div className="p-6 space-y-5">
           {/* Thông tin khách & giao hàng */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl bg-[#F7FCF1] p-4 text-sm">
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Khách hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.tenKhachHang || "Khách hàng"}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ngày đặt</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.ngayTao}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Địa chỉ nhận hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang}</p>
+          <div className="rounded-2xl bg-[#F7FCF1] p-4 space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Mã đơn hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">#{order.maDonHang || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Khách hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.tenKhachHang || "Không có thông tin"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Số điện thoại</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.sdtKhachHang || "Không có thông tin"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ngày đặt</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.ngayTao || "Không có thông tin"}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Trạng thái</p>
+                <p className="mt-1"><StatusBadge status={order.trangThai || "Không xác định"} /></p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Địa chỉ nhận hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang || "Không có thông tin"}</p>
+              </div>
             </div>
           </div>
 
           {/* Danh sách sản phẩm */}
           <div>
             <p className="mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              Sản phẩm ({order.chiTiet.length})
+              Sản phẩm ({order.chiTiet?.length || 0})
             </p>
             <div className="space-y-3">
-              {order.chiTiet.map((item) => (
-                <a
+              {order.chiTiet?.map((item) => (
+                <Link
                   key={item.maChiTietDonHang}
-                  href={`/product/${item.maSanPham}`}
+                  to={`/product/${item.maSanPham}`}
                   className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3 hover:bg-white transition-colors"
                 >
                   <img
@@ -138,13 +171,13 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-slate-800 truncate hover:text-[#4E6A4E] transition-colors">{item.tenSanPham}</p>
                     <p className="text-xs text-slate-500">
-                      {item.giaBan.toLocaleString("vi-VN")}đ × {item.soLuong}
+                      {(item.giaBan || 0).toLocaleString("vi-VN")}đ × {item.soLuong || 0}
                     </p>
                   </div>
                   <p className="font-bold text-slate-800 flex-shrink-0">
-                    {item.thanhTien.toLocaleString("vi-VN")}đ
+                    {(item.thanhTien || 0).toLocaleString("vi-VN")}đ
                   </p>
-                </a>
+                </Link>
               ))}
             </div>
           </div>
@@ -153,25 +186,30 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
           <div className="rounded-2xl bg-[#F4FBEE] p-4 text-sm space-y-2">
             <div className="flex justify-between text-slate-600">
               <span>Tiền hàng</span>
-              <span>{order.tongTienSanPham.toLocaleString("vi-VN")}đ</span>
+              <span>{(order.tongTienSanPham || 0).toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Phí giao hàng</span>
-              <span>{order.chiPhiGiaoHang.toLocaleString("vi-VN")}đ</span>
+              <span>{(order.chiPhiGiaoHang || 0).toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between border-t border-[#d8edc8] pt-2 font-bold text-slate-800 text-base">
               <span>Tổng cộng</span>
-              <span className="text-[#4E6A4E]">{order.tongTien.toLocaleString("vi-VN")}đ</span>
+              <span className="text-[#4E6A4E]">{(order.tongTien || 0).toLocaleString("vi-VN")}đ</span>
             </div>
           </div>
 
           {/* Lý do hủy (nếu có) */}
-          {order.lyDoHuy && (
+          {order.lyDoHuy ? (
             <div className="rounded-2xl bg-[#FDE8E8] p-4 text-sm">
               <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
               <p className="text-[#9D2B2B]">{order.lyDoHuy}</p>
             </div>
-          )}
+          ) : order.trangThai === "Đã hủy" ? (
+            <div className="rounded-2xl bg-[#FDE8E8] p-4 text-sm">
+              <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
+              <p className="text-[#9D2B2B]">Không có thông tin</p>
+            </div>
+          ) : null}
 
           {/* Form nhập lý do hủy */}
           {showCancelForm && (
@@ -209,11 +247,10 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3 pt-2">
-            {/* Nhắn tin — tạm thời disabled */}
+            {/* Nhắn tin với khách */}
             <button
-              disabled
-              className="rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed"
-              title="Tính năng đang phát triển"
+              onClick={handleChatWithBuyer}
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               💬 Nhắn tin với khách
             </button>
