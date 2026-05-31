@@ -10,6 +10,7 @@ function ChatFrame() {
 
   const chatInfo = useSelector((state: any) => state.chat.chatInfo);
 
+  const connected = useSelector((state: any) => state.socket.connected);
   const user = useSelector((state: any) => state.auth.user);
 
   const [userCurrentId, setUserCurrentId] = useState<number | null>(null);
@@ -19,7 +20,6 @@ function ChatFrame() {
   const [page, setPage] = useState(0);
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
   const dispatch = useDispatch();
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -152,7 +152,10 @@ function ChatFrame() {
 
   // realtime message
   useEffect(() => {
+    if (!connected) return;
     if (!conversationId) return;
+
+    console.log(`Subscribe /topic/conversation/${conversationId}`);
 
     const subscription = stompClient.subscribe(
       `/topic/conversation/${conversationId}`,
@@ -164,9 +167,11 @@ function ChatFrame() {
     );
 
     return () => {
+      console.log(`Unsubscribe /topic/conversation/${conversationId}`);
+
       subscription.unsubscribe();
     };
-  }, [conversationId]);
+  }, [conversationId, connected]);
 
   const handleSendMessage = () => {
     if (text.trim() === "") return;
