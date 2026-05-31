@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch } from "react-redux";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
 import type { AppDispatch } from "@/redux/store";
 import { ShoppingCart } from "lucide-react";
@@ -357,37 +357,37 @@ const ProductSearch = () => {
                   key={item.maSanPham}
                   className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
                 >
-                  <div className="h-[250px] overflow-hidden relative">
-                    <div className="absolute top-2 left-2 bg-[#49613E] text-white text-xs font-bold px-2 py-1 rounded">
-                      {item.tenTinhTrang}
+                  <Link to={`/product/${item.maSanPham}`} className="block">
+                    <div className="h-[250px] overflow-hidden relative">
+                      <div className="absolute top-2 left-2 bg-[#49613E] text-white text-xs font-bold px-2 py-1 rounded">
+                        {item.tenTinhTrang}
+                      </div>
+
+                      <img
+                        src={
+                          item.hinhAnhDaiDien
+                            ? item.hinhAnhDaiDien
+                            : "/images/placeholder.jpg"
+                        }
+                        alt={item.tenSanPham}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
 
-                    <img
-                      src={
-                        item.hinhAnhDaiDien
-                          ? item.hinhAnhDaiDien
-                          : "/images/placeholder.jpg"
-                      }
-                      alt={item.tenSanPham}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
+                    <div className="p-4">
+                      <h3 className="text-gray-800 font-semibold truncate mb-2 hover:text-[#49613E] transition-colors">
+                        {item.tenSanPham}
+                      </h3>
 
-                  <div className="p-4">
-                    <h3 className="text-gray-800 font-semibold truncate mb-2">
-                      {item.tenSanPham}
-                    </h3>
-
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[#49613E] font-bold text-lg">
-                        {item.giaSanPham}đ
-                      </span>
-
-                      <span className="text-xs text-gray-500 border border-gray-200 px-2 py-1 rounded">
-                        SL: {item.soLuong}
-                      </span>
+                      <div className="mb-3">
+                        <span className="text-[#49613E] font-bold text-lg">
+                          {item.giaSanPham.toLocaleString('vi-VN')}đ
+                        </span>
+                      </div>
                     </div>
+                  </Link>
 
+                  <div className="p-4 pt-0">
                     <div className="flex gap-2">
                       <input
                         type="number"

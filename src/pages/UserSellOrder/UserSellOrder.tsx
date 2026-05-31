@@ -103,77 +103,102 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
 
         <div className="p-6 space-y-5">
           {/* Thông tin khách & giao hàng */}
-          <div className="grid grid-cols-2 gap-4 rounded-2xl bg-[#F7FCF1] p-4 text-sm">
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Khách hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.tenKhachHang || "Khách hàng"}</p>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ngày đặt</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.ngayTao}</p>
-            </div>
-            <div className="col-span-2">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Địa chỉ nhận hàng</p>
-              <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang}</p>
+          <div className="rounded-2xl bg-[#F7FCF1] p-4 space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Mã đơn hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">#{order.maDonHang || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Khách hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.tenKhachHang || "Không có thông tin"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Số điện thoại</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.sdtKhachHang || "Không có thông tin"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Ngày đặt</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.ngayTao || "Không có thông tin"}</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Trạng thái</p>
+                <p className="mt-1"><StatusBadge status={order.trangThai || "Không xác định"} /></p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Địa chỉ nhận hàng</p>
+                <p className="mt-1 font-semibold text-slate-700">{order.diaChiNhanHang || "Không có thông tin"}</p>
+              </div>
             </div>
           </div>
 
           {/* Danh sách sản phẩm */}
           <div>
             <p className="mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wide">
-              Sản phẩm ({order.chiTiet.length})
+              Sản phẩm ({order.chiTiet?.length || 0})
             </p>
-            <div className="space-y-3">
-              {order.chiTiet.map((item) => (
-                <div
-                  key={item.maChiTietDonHang}
-                  className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3"
-                >
-                  <img
-                    src={
-                      item.hinhAnh ||
-                      "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"
-                    }
-                    alt={item.tenSanPham}
-                    className="h-14 w-14 rounded-xl object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-800 truncate">{item.tenSanPham}</p>
-                    <p className="text-xs text-slate-500">
-                      {item.giaBan.toLocaleString("vi-VN")}đ × {item.soLuong}
+            {order.chiTiet && order.chiTiet.length > 0 ? (
+              <div className="space-y-3">
+                {order.chiTiet.map((item) => (
+                  <div
+                    key={item.maChiTietDonHang}
+                    className="flex items-center gap-4 rounded-2xl bg-[#F7FCF1] p-3"
+                  >
+                    <img
+                      src={
+                        item.hinhAnh ||
+                        "https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=200&q=80"
+                      }
+                      alt={item.tenSanPham || "Sản phẩm"}
+                      className="h-14 w-14 rounded-xl object-cover flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-slate-800 truncate">{item.tenSanPham || "Không có tên"}</p>
+                      <p className="text-xs text-slate-500">
+                        {(item.giaBan || 0).toLocaleString("vi-VN")}đ × {item.soLuong || 0}
+                      </p>
+                    </div>
+                    <p className="font-bold text-slate-800 flex-shrink-0">
+                      {(item.thanhTien || 0).toLocaleString("vi-VN")}đ
                     </p>
                   </div>
-                  <p className="font-bold text-slate-800 flex-shrink-0">
-                    {item.thanhTien.toLocaleString("vi-VN")}đ
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-[#F7FCF1] p-4 text-center text-slate-600">
+                Không có sản phẩm trong đơn hàng
+              </div>
+            )}
           </div>
 
           {/* Tổng tiền */}
           <div className="rounded-2xl bg-[#F4FBEE] p-4 text-sm space-y-2">
             <div className="flex justify-between text-slate-600">
               <span>Tiền hàng</span>
-              <span>{order.tongTienSanPham.toLocaleString("vi-VN")}đ</span>
+              <span>{(order.tongTienSanPham || 0).toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Phí giao hàng</span>
-              <span>{order.chiPhiGiaoHang.toLocaleString("vi-VN")}đ</span>
+              <span>{(order.chiPhiGiaoHang || 0).toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between border-t border-[#d8edc8] pt-2 font-bold text-slate-800 text-base">
               <span>Tổng cộng</span>
-              <span className="text-[#4E6A4E]">{order.tongTien.toLocaleString("vi-VN")}đ</span>
+              <span className="text-[#4E6A4E]">{(order.tongTien || 0).toLocaleString("vi-VN")}đ</span>
             </div>
           </div>
 
           {/* Lý do hủy (nếu có) */}
-          {order.lyDoHuy && (
+          {order.lyDoHuy ? (
             <div className="rounded-2xl bg-[#FDE8E8] p-4 text-sm">
               <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
               <p className="text-[#9D2B2B]">{order.lyDoHuy}</p>
             </div>
-          )}
+          ) : order.trangThai === "Đã hủy" ? (
+            <div className="rounded-2xl bg-[#FDE8E8] p-4 text-sm">
+              <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
+              <p className="text-[#9D2B2B]">Không có thông tin</p>
+            </div>
+          ) : null}
 
           {/* Form nhập lý do hủy */}
           {showCancelForm && (

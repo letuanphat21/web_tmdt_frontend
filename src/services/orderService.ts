@@ -20,6 +20,9 @@ export interface DonHangDTO {
   trangThai: string;
   lyDoHuy?: string;
   chiTiet: ChiTietDonHangDTO[];
+  sdtKhachHang?: string;
+  tenShop?: string;
+  sdtShop?: string;
 }
 
 export interface TaoDonHangRequest {

@@ -53,3 +53,7 @@ export const searchHiddenUsers = (searchTerm: string, page: number = 0, size: nu
   axiosClient.get<unknown, { data: UserResponse }>("/admin/users/hidden/search", {
     params: { q: searchTerm, page, size },
   });
+
+// Tạo người dùng mới
+export const createUser = (userData: Omit<User, "maNguoiDung" | "avatar">) =>
+  axiosClient.post<unknown, { data: User }>("/admin/users", userData);

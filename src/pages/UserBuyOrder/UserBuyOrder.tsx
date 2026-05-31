@@ -174,76 +174,95 @@ function UserBuyOrder() {
           pageOrders.map((order) => (
             <div key={order.maDonHang} className="rounded-2xl bg-[#F7FCF1] p-6 shadow-sm">
               {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <span className="text-xs text-slate-500">Mã đơn: </span>
-                  <span className="text-sm font-bold text-slate-700">#{order.maDonHang}</span>
-                  <span className="ml-4 text-xs text-slate-400">{order.ngayTao}</span>
+              <div className="mb-4 pb-4 border-b border-slate-200">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <span className="text-xs text-slate-500">Mã đơn: </span>
+                    <span className="text-sm font-bold text-slate-700">#{order.maDonHang || "N/A"}</span>
+                    <span className="ml-4 text-xs text-slate-400">{order.ngayTao || "Không có thông tin"}</span>
+                  </div>
+                  <span className={`rounded-full px-4 py-1.5 text-xs font-semibold whitespace-nowrap ${statusColor[order.trangThai] ?? "bg-gray-100 text-gray-600"}`}>
+                    {order.trangThai || "Không xác định"}
+                  </span>
                 </div>
-                <span className={`rounded-full px-4 py-1.5 text-xs font-semibold ${statusColor[order.trangThai] ?? "bg-gray-100 text-gray-600"}`}>
-                  {order.trangThai}
-                </span>
+                <p className="text-xs text-slate-500 mb-2">
+                  Địa chỉ: <span className="font-medium text-slate-700">{order.diaChiNhanHang || "Không có thông tin"}</span>
+                </p>
+                <p className="text-xs text-slate-500">
+                  Số điện thoại: <span className="font-medium text-slate-700">{order.sdtKhachHang || "Không có thông tin"}</span>
+                </p>
               </div>
 
               {/* Sản phẩm */}
-              <div className="space-y-3">
-                {order.chiTiet?.map((ct) => (
-                  <Link
-                    key={ct.maChiTietDonHang}
-                    to={`/product/${ct.maSanPham}`}
-                    className="flex items-center gap-4 hover:bg-white/60 rounded-xl p-2 -mx-2 transition"
-                  >
-                    <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
-                      {ct.hinhAnh ? (
-                        <img src={ct.hinhAnh} alt={ct.tenSanPham} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-800 truncate hover:text-[#4E6A4E] transition">
-                        {ct.tenSanPham}
+              <div className="space-y-3 mb-4">
+                {order.chiTiet && order.chiTiet.length > 0 ? (
+                  order.chiTiet.map((ct) => (
+                    <Link
+                      key={ct.maChiTietDonHang}
+                      to={`/product/${ct.maSanPham}`}
+                      className="flex items-center gap-4 hover:bg-white/60 rounded-xl p-2 -mx-2 transition"
+                    >
+                      <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                        {ct.hinhAnh ? (
+                          <img src={ct.hinhAnh} alt={ct.tenSanPham || "Sản phẩm"} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-800 truncate hover:text-[#4E6A4E] transition">
+                          {ct.tenSanPham || "Không có tên"}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          x{ct.soLuong || 0} · {(ct.giaBan || 0).toLocaleString("vi-VN")}đ/cái
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 flex-shrink-0">
+                        {(ct.thanhTien || 0).toLocaleString("vi-VN")}đ
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        x{ct.soLuong} · {ct.giaBan.toLocaleString("vi-VN")}đ/cái
-                      </p>
-                    </div>
-                    <p className="text-sm font-bold text-slate-800 flex-shrink-0">
-                      {ct.thanhTien.toLocaleString("vi-VN")}đ
-                    </p>
-                  </Link>
-                ))}
+                    </Link>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-slate-500 text-sm">
+                    Không có sản phẩm trong đơn hàng
+                  </div>
+                )}
               </div>
 
-              {/* Footer */}
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-slate-500 truncate">
-                    Địa chỉ: {order.diaChiNhanHang}
-                  </p>
-                  {order.trangThai === "Đã hủy" && order.lyDoHuy && (
-                    <p className="text-xs text-red-500 mt-1">
-                      Lý do hủy: {order.lyDoHuy}
-                    </p>
-                  )}
+              {/* Lý do hủy nếu đã hủy */}
+              {order.trangThai === "Đã hủy" && (
+                <div className="mb-4 p-3 rounded-xl bg-[#FDE8E8]">
+                  <p className="text-xs font-semibold text-[#9D2B2B] uppercase tracking-wide mb-1">Lý do hủy</p>
+                  <p className="text-sm text-[#9D2B2B]">{order.lyDoHuy || "Không có thông tin"}</p>
                 </div>
-                <div className="flex items-center gap-4 flex-shrink-0">
-                  {/* Nút hủy đơn — chỉ hiện khi "Chờ xác nhận" */}
-                  {order.trangThai === "Chờ xác nhận" && (
-                    <button
-                      onClick={() => openCancelModal(order.maDonHang)}
-                      className="text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-1.5 rounded-full hover:bg-red-50 transition"
-                    >
-                      Hủy đơn
-                    </button>
-                  )}
-                  <div className="text-right">
-                    <p className="text-xs text-slate-500">Tổng cộng</p>
-                    <p className="text-lg font-bold text-[#4E6A4E]">
-                      {order.tongTien.toLocaleString("vi-VN")}đ
-                    </p>
-                  </div>
+              )}
+
+              {/* Tóm tắt tiền */}
+              <div className="pt-4 border-t border-slate-200 space-y-2 mb-4">
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-600">Tiền hàng:</span>
+                  <span className="font-medium text-slate-700">{(order.tongTienSanPham || 0).toLocaleString("vi-VN")}đ</span>
                 </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-slate-600">Phí vận chuyển:</span>
+                  <span className="font-medium text-slate-700">{(order.chiPhiGiaoHang || 0).toLocaleString("vi-VN")}đ</span>
+                </div>
+                <div className="flex justify-between font-bold text-sm border-t border-slate-200 pt-2">
+                  <span className="text-slate-800">Tổng cộng:</span>
+                  <span className="text-[#4E6A4E]">{(order.tongTien || 0).toLocaleString("vi-VN")}đ</span>
+                </div>
+              </div>
+
+              {/* Footer - Nút hành động */}
+              <div className="flex justify-end">
+                {order.trangThai === "Chờ xác nhận" && (
+                  <button
+                    onClick={() => openCancelModal(order.maDonHang)}
+                    className="text-sm text-red-500 hover:text-red-700 font-medium border border-red-200 px-4 py-1.5 rounded-full hover:bg-red-50 transition"
+                  >
+                    Hủy đơn
+                  </button>
+                )}
               </div>
             </div>
           ))
