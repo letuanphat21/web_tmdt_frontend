@@ -1,8 +1,12 @@
 import { useMemo, useState, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { useGetSellOrders, type DonHangDTO } from "@/hooks/useGetSellOrders";
 import { useGetOrderStatuses, type TrangThaiDTO } from "@/hooks/useGetOrderStatuses";
 import { useConfirmSellOrder } from "@/hooks/useConfirmSellOrder";
 import { useCancelSellOrder } from "@/hooks/useCancelSellOrder";
+import { chatWithBuyer } from "@/services/chatService";
+import chatSlice from "@/redux/chatSlice/chatSlice";
 
 // ─── Tab type ────────────────────────────────────────────────────────────────
 type TabItem = TrangThaiDTO & { label: string; value: string };
@@ -37,6 +41,8 @@ interface OrderDetailModalProps {
 }
 
 function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [lyDoHuy, setLyDoHuy] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
@@ -45,6 +51,19 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
   const { cancelOrder, loading: cancelling } = useCancelSellOrder();
 
   const isPending = order.trangThai === "Chờ duyệt";
+
+  const handleChatWithBuyer = async () => {
+    try {
+      const res = (await chatWithBuyer(order.emailKhachHang)) as any;
+      console.log(res);
+      if (res.success === true) {
+        dispatch(chatSlice.actions.setConversationId(res.data.id));
+        navigate("/profile/messages");
+      }
+    } catch {
+      console.log("Lỗi không tạo được conversation");
+    }
+  };
 
   const handleConfirm = async () => {
     setActionError(null);
@@ -228,11 +247,10 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-3 pt-2">
-            {/* Nhắn tin — tạm thời disabled */}
+            {/* Nhắn tin với khách */}
             <button
-              disabled
-              className="rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 cursor-not-allowed"
-              title="Tính năng đang phát triển"
+              onClick={handleChatWithBuyer}
+              className="rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
               💬 Nhắn tin với khách
             </button>

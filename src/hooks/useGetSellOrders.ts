@@ -23,6 +23,7 @@ export interface DonHangDTO {
   chiTiet: ChiTietDonHangDTO[];
   tenKhachHang?: string;
   sdtKhachHang?: string;
+  emailKhachHang?: string;
   tenShop?: string;
   sdtShop?: string;
 }

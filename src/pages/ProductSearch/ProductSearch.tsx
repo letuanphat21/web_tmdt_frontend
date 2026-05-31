@@ -60,7 +60,13 @@ const ProductSearch = () => {
   // Load initial data (categories, statuses, products)
   useEffect(() => {
     // Lấy danh sách sản phẩm
-    fetch("http://localhost:8080/api/products/search")
+    const token = localStorage.getItem("token");
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    fetch("http://localhost:8080/api/products/search", { headers })
       .then((res) => res.json())
       .then((data) => {
         const productsData = data.data.content || [];
