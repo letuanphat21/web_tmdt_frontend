@@ -15,8 +15,8 @@ function App() {
     if (token) {
       getProfile(token);
       dispatch(fetchCart());
+      connectSocket();
     }
-    connectSocket();
 
     return () => {
       disconnectSocket();
