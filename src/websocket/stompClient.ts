@@ -1,4 +1,6 @@
 import { Client } from "@stomp/stompjs";
+import { store } from "../redux/store";
+import socketSlice from "@/redux/socketSlice/socketSlice";
 
 export const stompClient = new Client({
   brokerURL: "ws://localhost:8080/app_socket",
@@ -19,13 +21,31 @@ export const stompClient = new Client({
 
   onConnect: () => {
     console.log("WebSocket Connected");
+
+    store.dispatch(socketSlice.actions.setConnected(true));
   },
 
   onDisconnect: () => {
     console.log("WebSocket Disconnected");
+
+    store.dispatch(socketSlice.actions.setConnected(false));
+  },
+
+  onWebSocketClose: (event) => {
+    console.log("WebSocket Closed", event);
+
+    store.dispatch(socketSlice.actions.setConnected(false));
+  },
+
+  onWebSocketError: (event) => {
+    console.error("WebSocket Error", event);
+
+    store.dispatch(socketSlice.actions.setConnected(false));
   },
 
   onStompError: (frame) => {
     console.error("Broker error", frame);
+
+    store.dispatch(socketSlice.actions.setConnected(false));
   },
 });
