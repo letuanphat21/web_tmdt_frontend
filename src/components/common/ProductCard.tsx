@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { ShoppingCart, CheckCircle, XCircle } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
 import type { AppDispatch, RootState } from "@/redux/store";
 
@@ -35,7 +36,7 @@ const ProductCard = ({ id, title, price, seller, image, tag, maxQuantity = 1 }: 
     e.stopPropagation();
 
     if (!isAuthenticated) {
-      showToast("error", "Vui lòng đăng nhập để thêm vào giỏ hàng!");
+      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
       setTimeout(() => navigate("/login"), 1200);
       return;
     }
@@ -43,7 +44,7 @@ const ProductCard = ({ id, title, price, seller, image, tag, maxQuantity = 1 }: 
     setIsAdding(true);
     try {
       await dispatch(addItemToCart({ maSanPham: id, soLuong: quantity })).unwrap();
-      showToast("success", `Đã thêm vào giỏ hàng!`);
+      showToast("success", `Đã thêm "${title}" vào giỏ hàng!`);
       setQuantity(1);
     } catch {
       showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng thử lại!");
@@ -61,22 +62,18 @@ const ProductCard = ({ id, title, price, seller, image, tag, maxQuantity = 1 }: 
   return (
     <div className="block cursor-pointer group relative">
       {/* Toast notification */}
-      {toast.type && (
+      {toast.type && createPortal(
         <div
           className={`
-            absolute -top-12 left-1/2 -translate-x-1/2 z-50
-            flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg
-            text-white text-xs font-medium whitespace-nowrap
-            animate-fade-in
+            fixed top-5 right-5 z-50
+            flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg
+            text-white text-sm font-medium transition-all
             ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}
           `}
         >
-          {toast.type === "success"
-            ? <CheckCircle size={14} />
-            : <XCircle size={14} />
-          }
-          {toast.msg}
-        </div>
+          {toast.type === "success" ? "✓" : "✕"} {toast.msg}
+        </div>,
+        document.body
       )}
 
       <Link to={`/product/${id}`} className="space-y-2 block">
