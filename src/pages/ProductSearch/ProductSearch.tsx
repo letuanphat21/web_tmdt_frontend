@@ -1,9 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { useSearchParams, Link } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
 import type { AppDispatch } from "@/redux/store";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Camera } from "lucide-react";
 
 interface Product {
   maSanPham: number;
@@ -60,9 +60,7 @@ const ProductSearch = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [statuses, setStatuses] = useState<Status[]>([]);
 
-  // Load initial data (categories, statuses, products)
-  useEffect(() => {
-    // Lấy danh sách sản phẩm
+  const fetchInitialProducts = useCallback(() => {
     const token = localStorage.getItem("token");
     const headers: Record<string, string> = {};
     if (token) {
@@ -76,6 +74,11 @@ const ProductSearch = () => {
         setAllProducts(productsData);
       })
       .catch((err) => console.error("Lỗi products:", err));
+  }, []);
+
+  // Load initial data (categories, statuses, products)
+  useEffect(() => {
+    fetchInitialProducts();
 
     // Lấy danh mục + tình trạng
     Promise.all([
@@ -89,7 +92,7 @@ const ProductSearch = () => {
         setStatuses(statusData.data || []);
       })
       .catch((err) => console.error("Lỗi filters:", err));
-  }, []);
+  }, [fetchInitialProducts]);
 
   // Apply filters and search using useMemo
   const products = useMemo(() => {
@@ -208,10 +211,10 @@ const ProductSearch = () => {
 
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
-      
+
       const responseText = await response.text();
       console.log('Raw response text:', responseText);
-      
+
       if (!response.ok) {
         alert(`Lỗi API: ${response.status} - ${responseText}`);
         return;
@@ -250,6 +253,9 @@ const ProductSearch = () => {
     setMinPrice("");
     setMaxPrice("");
     setSortBy("newest");
+    setUploadedImage(null);
+    setImagePreview(null);
+    fetchInitialProducts();
   };
 
   // Handle quantity change
@@ -300,33 +306,24 @@ const ProductSearch = () => {
       <div className="max-w-[1200px] mx-auto px-6">
         {/* SEARCH BAR */}
         <div className="mb-8 space-y-4">
-          <div className="flex gap-4">
+          <div className="relative flex items-center">
             <input
               type="text"
               placeholder="Tìm kiếm áo khoác, quần jean, phụ kiện..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="flex-1 px-6 py-4 rounded-full border border-gray-300 focus:outline-none focus:border-[#49613E] shadow-sm"
+              className="w-full pl-6 pr-16 py-4 rounded-full border border-gray-300 focus:outline-none focus:border-[#49613E] shadow-sm bg-white"
             />
 
-            <button
-              onClick={() => {
-                // Search is already triggered by useEffect
-              }}
-              className="px-8 py-4 bg-[#49613E] text-white rounded-full font-bold cursor-pointer hover:bg-[#3a4d31] transition-all"
-            >
-              Tìm kiếm
-            </button>
-
             {/* Image Search Button */}
-            <label className="px-6 py-4 bg-blue-100 text-blue-700 rounded-full font-bold cursor-pointer hover:bg-blue-200 transition-all flex items-center gap-2">
+            <label className="absolute right-2 p-3 text-gray-500 hover:text-[#49613E] hover:bg-[#F4FBEE] rounded-full cursor-pointer transition-all flex items-center justify-center">
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
                 className="hidden"
               />
-              📷 Tìm theo ảnh
+              <Camera className="w-5 h-5" />
             </label>
           </div>
 
@@ -348,6 +345,7 @@ const ProductSearch = () => {
                 onClick={() => {
                   setUploadedImage(null);
                   setImagePreview(null);
+                  fetchInitialProducts();
                 }}
                 className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-full transition-all"
               >
