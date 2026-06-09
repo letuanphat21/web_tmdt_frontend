@@ -30,11 +30,13 @@ export const getDoanhThuTheoDanhMuc = async (maSeller: number, thang: number, na
 
 // --- API CHO VÍ VÀ RÚT TIỀN THẬT ---
 export const getThongTinVi = async (maNguoiDung: number): Promise<{ soDu: number; lichSu: any[] }> => {
-    return await axiosClient.get(`/api/vi/${maNguoiDung}`);
+    const response = await axiosClient.get(`/api/vi/${maNguoiDung}`);
+    return response.data ?? response as any;
 };
 
 export const postRutTien = async (maNguoiDung: number, soTien: number): Promise<any> => {
-    return await axiosClient.post(`/api/vi/${maNguoiDung}/rut-tien`, null, {
+    const response = await axiosClient.post(`/api/vi/${maNguoiDung}/rut-tien`, null, {
         params: { soTien }
     });
+    return response.data ?? response as any;
 };

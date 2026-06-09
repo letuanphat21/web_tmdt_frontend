@@ -1,4 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
+// Thêm import Redux ở đây
+import { useSelector } from "react-redux";
 // Import thư viện vẽ biểu đồ
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 // Import các API từ service
@@ -23,6 +25,12 @@ type Transaction = {
 const COLORS = ['#49613E', '#809B71', '#A6C496', '#CDE5C0', '#34D399'];
 
 function UserWallet() {
+    // LẤY THÔNG TIN USER TỪ REDUX GIỐNG TRANG PROFILE
+    const user = useSelector((state: any) => state.auth.user);
+
+    // GÁN MÃ SELLER LINH ĐỘNG (nếu Redux chưa kịp load thì fallback tạm về 9)
+    const maSeller = user?.maNguoiDung || 9;
+
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
@@ -45,8 +53,6 @@ function UserWallet() {
     const [withdrawError, setWithdrawError] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Giả định ID Seller/User đang đăng nhập
-    const maSeller = 1;
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1;
 
@@ -106,9 +112,11 @@ function UserWallet() {
             }
         };
 
-        fetchData();
-        fetchWalletInfo(); // Chạy hàm lấy thông tin ví
-    }, [currentMonth, currentYear]);
+        if (maSeller) {
+            fetchData();
+            fetchWalletInfo();
+        }
+    }, [currentMonth, currentYear, maSeller]);
 
     // Xử lý hành động rút tiền thật xuống DB
     const handleWithdraw = async () => {
