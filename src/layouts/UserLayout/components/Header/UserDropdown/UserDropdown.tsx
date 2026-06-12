@@ -133,7 +133,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
               Tất cả sản phẩm
             </Link>
             <Link
-              to="/add-product"
+              to="/profile/sell-orders"
               className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 transition-colors"
             >
               <Van size={16} className="text-gray-500" />
@@ -149,7 +149,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
               Yêu thích
             </Link>
             <Link
-              to="/add-product"
+              to="/profile/buy-orders"
               className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 rounded-lg text-sm text-gray-700 transition-colors"
             >
               <ShoppingCart size={16} className="text-gray-500" />
