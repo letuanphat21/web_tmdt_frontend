@@ -1,5 +1,6 @@
 import AdminLayout from "@/layouts/AdminLayout/AdminLayout";
 import AdminUsers from "@/pages/AdminUsers";
+import AdminCategories from "@/pages/AdminCategories";
 import AdminReports from "@/pages/AdminReports";
 import AdminOrders from "@/pages/AdminOrders";
 import AdminProducts from "@/pages/AdminProducts";
@@ -17,6 +18,7 @@ const adminRoutes = {
   element: <AdminLayout />,
   children: [
     { path: "users", element: <AdminUsers /> },
+    { path: "categories", element: <AdminCategories /> },
     { path: "reports", element: <AdminReports /> },
     { path: "orders", element: <AdminOrders /> },
     { path: "products", element: <AdminProducts /> },

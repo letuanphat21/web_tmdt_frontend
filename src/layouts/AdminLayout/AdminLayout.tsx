@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import authSlice, { logout } from "@/redux/authSlice/authSlice";
+import authSlice from "@/redux/authSlice/authSlice";
 import { disconnectSocket } from "@/websocket/chatSocket";
 
 // Danh sách các menu theo đúng Figma
 const adminMenus = [
   { path: "/admin/users", label: "Quản lý người dùng" },
+  { path: "/admin/categories", label: "Quản lý phân loại" },
   { path: "/admin/reports", label: "Thống kê báo cáo" },
   { path: "/admin/orders", label: "Quản lý đơn hàng" },
   { path: "/admin/products", label: "Quản lý sản phẩm" },
