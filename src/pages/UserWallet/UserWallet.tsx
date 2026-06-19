@@ -5,8 +5,8 @@ import { useSelector } from "react-redux";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 // Import các API từ service
 import {
-    getDoanhThuTheoDanhMuc,
-    getDoanhThuSeller,
+    getDoanhThuTheoKhoangNgay,
+    getDoanhThuDanhMucTheoKhoangNgay,
     getThongTinVi,
     postRutTien,
     type DoanhThuDanhMuc
@@ -25,43 +25,48 @@ type Transaction = {
 const COLORS = ['#49613E', '#809B71', '#A6C496', '#CDE5C0', '#34D399'];
 
 function UserWallet() {
-    // LẤY THÔNG TIN USER TỪ REDUX GIỐNG TRANG PROFILE
+    // 1. LẤY THÔNG TIN USER TỪ REDUX (Single Source of Truth)
     const user = useSelector((state: any) => state.auth.user);
-
-    // GÁN MÃ SELLER LINH ĐỘNG (nếu Redux chưa kịp load thì fallback tạm về 9)
-    const maSeller = user?.maNguoiDung || 9;
+    const isHydrated = useSelector((state: any) => state.auth.isHydrated);
+    const maSeller = user?.maNguoiDung;
 
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
-    // 1. State cho Biểu đồ Tròn (Danh mục)
+    // State bộ lọc ngày cho BIỂU ĐỒ
+    const today = new Date();
+    const firstDayOfMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
+    const todayStr = today.toISOString().split('T')[0];
+    const [chartFromDate, setChartFromDate] = useState(firstDayOfMonth);
+    const [chartToDate, setChartToDate] = useState(todayStr);
+    const [chartFromInput, setChartFromInput] = useState(firstDayOfMonth);
+    const [chartToInput, setChartToInput] = useState(todayStr);
+
+    // State cho Biểu đồ Tròn (Danh mục)
     const [categoryData, setCategoryData] = useState<DoanhThuDanhMuc[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(false);
 
-    // 2. State cho Biểu đồ Cột (Theo ngày)
+    // State cho Biểu đồ Cột (Theo ngày)
     const [dailyData, setDailyData] = useState<any[]>([]);
     const [loadingDaily, setLoadingDaily] = useState(false);
 
-    // 3. State cho Số dư và Lịch sử giao dịch THẬT từ Database
+    // State cho Số dư và Lịch sử giao dịch THẬT từ Database
     const [balance, setBalance] = useState<number>(0);
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loadingWallet, setLoadingWallet] = useState(false);
 
-    // 4. State cho Modal Rút tiền
+    // State cho Modal Rút tiền
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [withdrawAmount, setWithdrawAmount] = useState<string>("");
     const [withdrawError, setWithdrawError] = useState<string>("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1;
-
     // Hàm gọi API lấy thông tin Ví (Số dư & Lịch sử) từ DB
     const fetchWalletInfo = async () => {
+        if (!maSeller) return; // Phòng thủ bảo vệ API
         setLoadingWallet(true);
         try {
             const res = await getThongTinVi(maSeller);
-            // Phòng thủ nếu res hoặc res.soDu không tồn tại
             setBalance(res?.soDu ?? 0);
 
             if (res && res.lichSu) {
@@ -87,18 +92,16 @@ function UserWallet() {
         }
     };
 
-    // Gọi đồng thời tất cả API khi load trang
+    // Gọi đồng thời tất cả API khi có mã Seller
     useEffect(() => {
         const fetchData = async () => {
             setLoadingCategories(true);
             setLoadingDaily(true);
             try {
-                // Lấy dữ liệu cho Bánh Donut
-                const resCat = await getDoanhThuTheoDanhMuc(maSeller, currentMonth, currentYear);
+                const resCat = await getDoanhThuDanhMucTheoKhoangNgay(maSeller, chartFromDate, chartToDate);
                 setCategoryData(resCat);
 
-                // Lấy dữ liệu cho Biểu đồ Cột
-                const resDaily = await getDoanhThuSeller(maSeller, currentYear, currentMonth);
+                const resDaily = await getDoanhThuTheoKhoangNgay(maSeller, chartFromDate, chartToDate);
                 const formattedDaily = resDaily.map(item => ({
                     name: `Ngày ${item.ngay}`,
                     doanhThu: item.doanhThu
@@ -116,13 +119,12 @@ function UserWallet() {
             fetchData();
             fetchWalletInfo();
         }
-    }, [currentMonth, currentYear, maSeller]);
+    }, [chartFromDate, chartToDate, maSeller]);
 
     // Xử lý hành động rút tiền thật xuống DB
     const handleWithdraw = async () => {
         const amount = Number(withdrawAmount);
 
-        // Validate Frontend nhanh trước khi bắn request
         if (!withdrawAmount || amount <= 0) {
             setWithdrawError("Vui lòng nhập số tiền hợp lệ.");
             return;
@@ -138,16 +140,12 @@ function UserWallet() {
 
         setIsSubmitting(true);
         try {
-            // Bắn request POST xuống Spring Boot để trừ tiền thật
             await postRutTien(maSeller, amount);
-
-            // Nếu thành công -> Đóng modal và tải lại dữ liệu mới nhất từ DB lên
             setIsWithdrawModalOpen(false);
             setWithdrawAmount("");
             setWithdrawError("");
-            await fetchWalletInfo(); // Gọi hàm này để số dư tự tụt và bảng lịch sử tự cập nhật dòng mới
+            await fetchWalletInfo();
         } catch (error: any) {
-            // Đọc lỗi trả về từ Backend nếu có
             const errMsg = error?.response?.data || "Rút tiền thất bại. Vui lòng thử lại.";
             setWithdrawError(errMsg);
         } finally {
@@ -161,8 +159,7 @@ function UserWallet() {
     }, [categoryData]);
 
     // Format tiền tệ khi hover chuột vào biểu đồ
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tooltipFormatter = (value: any): [string, string] => {
+    const tooltipFormatter = (value: number): [string, string] => {
         const numericValue = typeof value === 'number' ? value : (Number(value) || 0);
         return [`${numericValue.toLocaleString('vi-VN')} đ`, "Doanh thu"];
     };
@@ -179,6 +176,25 @@ function UserWallet() {
     }, [fromDate, toDate, transactions]);
 
     const transactionCount = filteredTransactions.length;
+
+    // 2. MÀN HÌNH CHỜ: Chờ profile từ BE về xong (isHydrated)
+    if (!isHydrated) {
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen gap-3 text-[#49613E] bg-brand-bg">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#49613E]"></div>
+                <span className="font-bold text-sm">Đang đồng bộ dữ liệu tài khoản từ hệ thống...</span>
+            </div>
+        );
+    }
+
+    // Đã hydrate xong nhưng không có user → chưa đăng nhập
+    if (!maSeller) {
+        return (
+            <div className="flex flex-col justify-center items-center min-h-screen gap-3">
+                <span className="font-bold text-slate-700">Vui lòng đăng nhập để xem ví.</span>
+            </div>
+        );
+    }
 
     return (
         <div className="py-16 px-12 relative">
@@ -243,10 +259,39 @@ function UserWallet() {
                         <div>
                             <div className="text-sm text-slate-600">Biểu đồ doanh thu</div>
                             <div className="mt-2 text-xl font-semibold text-slate-900">
-                                Theo tháng
+                                Theo ngày
                             </div>
                         </div>
-                        <div className="text-sm text-slate-500">Tháng gần nhất</div>
+                        {/* BỘ LỌC NGÀY CHO BIỂU ĐỒ */}
+                        <div className="flex items-end gap-2">
+                            <label className="flex flex-col gap-1 text-xs text-slate-500">
+                                Từ ngày
+                                <input
+                                    type="date"
+                                    value={chartFromInput}
+                                    onChange={(e) => setChartFromInput(e.target.value)}
+                                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#49613E]"
+                                />
+                            </label>
+                            <label className="flex flex-col gap-1 text-xs text-slate-500">
+                                Đến ngày
+                                <input
+                                    type="date"
+                                    value={chartToInput}
+                                    onChange={(e) => setChartToInput(e.target.value)}
+                                    className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-[#49613E]"
+                                />
+                            </label>
+                            <button
+                                onClick={() => {
+                                    setChartFromDate(chartFromInput);
+                                    setChartToDate(chartToInput);
+                                }}
+                                className="rounded-full bg-[#49613E] px-4 py-2 text-xs font-semibold text-white hover:bg-[#384a2f] transition"
+                            >
+                                Xem
+                            </button>
+                        </div>
                     </div>
 
                     <div className="rounded-3xl bg-white p-4 h-72">
@@ -277,7 +322,7 @@ function UserWallet() {
                                 Phân bổ
                             </div>
                         </div>
-                        <span className="text-sm text-slate-500">Đơn vị %</span>
+                        <span className="text-xs text-slate-400 text-right">{chartFromDate}<br/>→ {chartToDate}</span>
                     </div>
 
                     <div className="rounded-3xl bg-white p-6">
