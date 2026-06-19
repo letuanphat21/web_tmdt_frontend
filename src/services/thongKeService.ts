@@ -2,63 +2,88 @@ import axiosClient from "../service/axiosClient"; // Sửa lại đường dẫn
 
 // --- Kiểu dữ liệu và API cho Biểu đồ Cột (Doanh thu theo ngày) ---
 export interface DoanhThuNgay {
-  ngay: number;
-  doanhThu: number;
+    ngay: number;
+    doanhThu: number;
 }
 
 export const getDoanhThuSeller = async (
-  maSeller: number,
-  nam: number,
-  thang: number,
+    maSeller: number,
+    nam: number,
+    thang: number,
 ): Promise<DoanhThuNgay[]> => {
-  const response = await axiosClient.get<DoanhThuNgay[]>(
-    `/api/thong-ke/seller/${maSeller}`,
-    {
-      params: { nam, thang },
-    },
-  );
-  // Trả về data (tùy thuộc vào cấu hình interceptor của bạn, nếu lỗi undefine thì đổi thành "return response as any")
-  return response.data ?? (response as any);
+    const response = await axiosClient.get<DoanhThuNgay[]>(
+        `/thong-ke/seller/${maSeller}`,
+        {
+            params: { nam, thang },
+        },
+    );
+    // Trả về data (tùy thuộc vào cấu hình interceptor của bạn, nếu lỗi undefine thì đổi thành "return response as any")
+    return response.data ?? (response as any);
 };
 
 // --- Kiểu dữ liệu và API cho Biểu đồ Tròn (Doanh thu theo danh mục) ---
 export interface DoanhThuDanhMuc {
-  tenDanhMuc: string;
-  doanhThu: number;
+    tenDanhMuc: string;
+    doanhThu: number;
 }
 
 export const getDoanhThuTheoDanhMuc = async (
-  maSeller: number,
-  thang: number,
-  nam: number,
+    maSeller: number,
+    thang: number,
+    nam: number,
 ): Promise<DoanhThuDanhMuc[]> => {
-  const response = await axiosClient.get(
-    `/api/thong-ke/seller/${maSeller}/danh-muc`,
-    {
-      params: { thang, nam },
-    },
-  );
-  return response as unknown as DoanhThuDanhMuc[];
+    const response = await axiosClient.get(
+        `/thong-ke/seller/${maSeller}/danh-muc`,
+        {
+            params: { thang, nam },
+        },
+    );
+    return response as unknown as DoanhThuDanhMuc[];
+};
+
+// --- API THEO KHOẢNG NGÀY ---
+export const getDoanhThuTheoKhoangNgay = async (
+    maSeller: number,
+    tuNgay: string,
+    denNgay: string,
+): Promise<DoanhThuNgay[]> => {
+    const response = await axiosClient.get<DoanhThuNgay[]>(
+        `/thong-ke/seller/${maSeller}/khoang-ngay`,
+        { params: { tuNgay, denNgay } },
+    );
+    return response.data ?? (response as any);
+};
+
+export const getDoanhThuDanhMucTheoKhoangNgay = async (
+    maSeller: number,
+    tuNgay: string,
+    denNgay: string,
+): Promise<DoanhThuDanhMuc[]> => {
+    const response = await axiosClient.get(
+        `/thong-ke/seller/${maSeller}/danh-muc/khoang-ngay`,
+        { params: { tuNgay, denNgay } },
+    );
+    return response as unknown as DoanhThuDanhMuc[];
 };
 
 // --- API CHO VÍ VÀ RÚT TIỀN THẬT ---
 export const getThongTinVi = async (
-  maNguoiDung: number,
+    maNguoiDung: number,
 ): Promise<{ soDu: number; lichSu: any[] }> => {
-  const response = await axiosClient.get(`/api/vi/${maNguoiDung}`);
-  return response.data ?? (response as any);
+    const response = await axiosClient.get(`/vi/${maNguoiDung}`);
+    return response.data ?? (response as any);
 };
 
 export const postRutTien = async (
-  maNguoiDung: number,
-  soTien: number,
+    maNguoiDung: number,
+    soTien: number,
 ): Promise<any> => {
-  const response = await axiosClient.post(
-    `/api/vi/${maNguoiDung}/rut-tien`,
-    null,
-    {
-      params: { soTien },
-    },
-  );
-  return response.data ?? (response as any);
+    const response = await axiosClient.post(
+        `/vi/${maNguoiDung}/rut-tien`,
+        null,
+        {
+            params: { soTien },
+        },
+    );
+    return response.data ?? (response as any);
 };
