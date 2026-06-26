@@ -67,7 +67,9 @@ export const getSellerProducts = (
   });
 
 export const activateSellerProduct = (productId: number) =>
-  axiosClient.put<unknown, { message: string }>(`/products/${productId}/active`);
+  axiosClient.put<unknown, { message: string }>(
+    `/products/${productId}/active`,
+  );
 
 export const deactivateSellerProduct = (productId: number) =>
   axiosClient.put<unknown, { message: string }>(
@@ -83,7 +85,6 @@ export const updateSellerProduct = (
     payload,
   );
 
-/** Nhãn tiếng Việt hiển thị trên badge thẻ sản phẩm */
 export function getDisplayStatusLabel(displayStatus: string): string {
   const labels: Record<string, string> = {
     ACTIVE: "Đang bán",

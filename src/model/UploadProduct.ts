@@ -10,6 +10,7 @@ export default class UploadProduct {
   thuongHieu: string;
   categoryId: number;
   tinhTrangId: number;
+  statusId?: number;
   images: ImageUpload[];
 
   constructor(
@@ -22,6 +23,7 @@ export default class UploadProduct {
     thuongHieu: string,
     categoryId: number,
     tinhTrangId: number,
+    statusId: number | undefined,
     images: ImageUpload[],
   ) {
     this.tenSanPham = tenSanPham;
@@ -33,6 +35,7 @@ export default class UploadProduct {
     this.thuongHieu = thuongHieu;
     this.categoryId = categoryId;
     this.tinhTrangId = tinhTrangId;
+    this.statusId = statusId;
     this.images = images;
   }
 }
