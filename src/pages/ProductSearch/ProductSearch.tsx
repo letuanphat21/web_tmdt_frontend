@@ -28,8 +28,8 @@ interface Status {
 
 const ProductSearch = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const [searchParams] = useSearchParams();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("query") || "";
   const [sortBy, setSortBy] = useState("newest");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -247,7 +247,9 @@ const ProductSearch = () => {
 
   // Clear all filters
   const handleClearFilters = () => {
-    setSearchTerm("");
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete("query");
+    setSearchParams(newParams);
     setSelectedCategories([]);
     setSelectedStatuses([]);
     setMinPrice("");
@@ -306,17 +308,9 @@ const ProductSearch = () => {
       <div className="max-w-[1200px] mx-auto px-6">
         {/* SEARCH BAR */}
         <div className="mb-8 space-y-4">
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              placeholder="Tìm kiếm áo khoác, quần jean, phụ kiện..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-6 pr-16 py-4 rounded-full border border-gray-300 focus:outline-none focus:border-[#49613E] shadow-sm bg-white"
-            />
-
-            {/* Image Search Button */}
-            <label className="absolute right-2 p-3 text-gray-500 hover:text-[#49613E] hover:bg-[#F4FBEE] rounded-full cursor-pointer transition-all flex items-center justify-center">
+          {/* Image Search Button */}
+          <div className="flex justify-end">
+            <label className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-600 hover:text-[#49613E] hover:border-[#49613E] hover:bg-[#F4FBEE] cursor-pointer transition-all shadow-sm">
               <input
                 type="file"
                 accept="image/*"
@@ -324,6 +318,7 @@ const ProductSearch = () => {
                 className="hidden"
               />
               <Camera className="w-5 h-5" />
+              <span className="text-sm font-semibold">Tìm kiếm bằng hình ảnh</span>
             </label>
           </div>
 
@@ -499,9 +494,6 @@ const ProductSearch = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-[#49613E] font-bold text-lg">
                           {item.giaSanPham.toLocaleString("vi-VN")}đ
-                        </span>
-                        <span className="text-xs text-gray-500 border border-gray-200 px-2 py-1 rounded">
-                          SL: {item.soLuong}
                         </span>
                       </div>
                     </div>

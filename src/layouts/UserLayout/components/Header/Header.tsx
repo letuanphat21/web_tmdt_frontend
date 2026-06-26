@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Bell, Search, ShoppingCart } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
@@ -9,6 +10,39 @@ const Header = () => {
   const cartCount = useSelector(
     (state: RootState) => state.cart.cart?.tongSoLuong ?? 0,
   );
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchValue, setSearchValue] = useState("");
+
+  // Sync header input with URL query param if we are on the /search page
+  useEffect(() => {
+    if (location.pathname === "/search") {
+      setSearchValue(searchParams.get("query") || "");
+    } else {
+      setSearchValue("");
+    }
+  }, [location.pathname, searchParams]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = searchValue.trim();
+    if (location.pathname === "/search") {
+      const newParams = new URLSearchParams(searchParams);
+      if (query) {
+        newParams.set("query", query);
+      } else {
+        newParams.delete("query");
+      }
+      setSearchParams(newParams);
+    } else {
+      if (query) {
+        navigate(`/search?query=${encodeURIComponent(query)}`);
+      } else {
+        navigate("/search");
+      }
+    }
+  };
 
   return (
     <header className="w-full bg-white shadow-sm">
@@ -22,16 +56,20 @@ const Header = () => {
         </div>
 
         {/* SEARCH */}
-        <div className="flex-1 px-10">
+        <form onSubmit={handleSearchSubmit} className="flex-1 px-10">
           <div className="flex items-center bg-[#F4F4F4] rounded-full px-4 h-11">
             <input
               type="text"
               placeholder="Tìm kiếm trên OReMa..."
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
               className="flex-1 bg-transparent outline-none text-sm"
             />
-            <Search size={18} />
+            <button type="submit" className="text-gray-500 hover:text-black transition-colors focus:outline-none flex items-center justify-center">
+              <Search size={18} />
+            </button>
           </div>
-        </div>
+        </form>
 
         {/* RIGHT */}
         <div className="flex items-center gap-6">

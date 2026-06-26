@@ -1,17 +1,17 @@
-import { Eye, Trash2 } from "lucide-react";
+import { Trash2, Pencil } from "lucide-react";
 import type { User } from "@/services/adminUserService";
 
 interface AdminUsersTableProps {
   users: User[];
   loading: boolean;
-  onViewDetails: (user: User) => void;
+  onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 }
 
 const AdminUsersTable = ({
   users,
   loading,
-  onViewDetails,
+  onEdit,
   onDelete,
 }: AdminUsersTableProps) => {
   return (
@@ -74,11 +74,11 @@ const AdminUsersTable = ({
                 <td className="py-6 px-6 text-sm text-center">
                   <div className="flex justify-center gap-3">
                     <button
-                      onClick={() => onViewDetails(user)}
-                      className="p-2 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
-                      title="Xem chi tiết"
+                      onClick={() => onEdit(user)}
+                      className="p-2 hover:bg-yellow-100 text-yellow-600 rounded-lg transition-colors"
+                      title="Chỉnh sửa"
                     >
-                      <Eye size={18} />
+                      <Pencil size={18} />
                     </button>
 
                     <button
