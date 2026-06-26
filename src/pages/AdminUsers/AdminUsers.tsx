@@ -2,18 +2,18 @@ import { useEffect, useState } from "react";
 import {
   getUsers,
   searchUsers,
-  updateUserStatus,
   deleteUser,
   getHiddenUsers,
   searchHiddenUsers,
   createUser,
+  updateUser,
 } from "@/services/adminUserService";
 import type { User } from "@/services/adminUserService";
 import AdminUsersTable from "./sections/AdminUsersTable";
 import AdminUsersPagination from "./sections/AdminUsersPagination";
-import AdminUsersDetailModal from "./sections/AdminUsersDetailModal";
 import AdminUsersDeleteModal from "./sections/AdminUsersDeleteModal";
 import AdminUsersCreateModal from "./sections/AdminUsersCreateModal";
+import AdminUsersEditModal from "./sections/AdminUsersEditModal";
 
 const AdminUsers = () => {
   const [activeTab, setActiveTab] = useState<"active" | "hidden">("active");
@@ -26,15 +26,14 @@ const AdminUsers = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
-  const [tempStatus, setTempStatus] = useState<number>(0);
-  const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<User | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
   const showToast = (type: "success" | "error", msg: string) => {
@@ -95,13 +94,6 @@ const AdminUsers = () => {
     }
   };
 
-  // Mở modal xem chi tiết
-  const handleViewDetails = (user: User) => {
-    setSelectedUser(user);
-    setTempStatus(user.trangThai);
-    setIsDetailModalOpen(true);
-  };
-
   // Mở modal xác nhận xóa
   const handleOpenDeleteModal = (user: User) => {
     setUserToDelete(user);
@@ -114,13 +106,13 @@ const AdminUsers = () => {
       setIsDeleting(true);
       try {
         await deleteUser(userToDelete.maNguoiDung);
-        showToast("success", "Xóa người dùng thành công!");
+        showToast("success", "Khóa người dùng thành công!");
         setIsDeleteModalOpen(false);
         setUserToDelete(null);
         loadUsers(currentPage, searchTerm);
       } catch (err) {
         console.error("Lỗi xóa người dùng:", err);
-        showToast("error", "Không thể xóa người dùng. Vui lòng thử lại!");
+        showToast("error", "Không thể khóa người dùng. Vui lòng thử lại!");
       } finally {
         setIsDeleting(false);
       }
@@ -131,7 +123,11 @@ const AdminUsers = () => {
   const handleCreateUser = async (userData: Omit<User, "maNguoiDung" | "avatar">) => {
     setIsCreating(true);
     try {
-      await createUser(userData);
+      const mappedGender = userData.gioiTinh === "Nam" ? "M" : userData.gioiTinh === "Nữ" ? "F" : "O";
+      await createUser({
+        ...userData,
+        gioiTinh: mappedGender,
+      });
       showToast("success", "Tạo tài khoản thành công!");
       setIsCreateModalOpen(false);
       setCurrentPage(0);
@@ -144,25 +140,31 @@ const AdminUsers = () => {
     }
   };
 
-  // Lưu thay đổi trạng thái
-  const handleSaveStatus = async () => {
-    if (selectedUser && selectedUser.trangThai !== tempStatus) {
-      setIsSaving(true);
-      try {
-        await updateUserStatus(selectedUser.maNguoiDung, tempStatus);
-        showToast("success", "Cập nhật trạng thái thành công!");
-        setIsDetailModalOpen(false);
-        setSelectedUser(null);
-        loadUsers(currentPage, searchTerm);
-      } catch (err) {
-        console.error("Lỗi cập nhật trạng thái:", err);
-        showToast("error", "Không thể cập nhật trạng thái. Vui lòng thử lại!");
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      setIsDetailModalOpen(false);
-      setSelectedUser(null);
+  // Mở modal chỉnh sửa
+  const handleOpenEditModal = (user: User) => {
+    setUserToEdit(user);
+    setIsEditModalOpen(true);
+  };
+
+  // Xử lý lưu chỉnh sửa thông tin người dùng
+  const handleEditUser = async (userData: Omit<User, "maNguoiDung" | "avatar">) => {
+    if (!userToEdit) return;
+    setIsSavingEdit(true);
+    try {
+      const mappedGender = userData.gioiTinh === "Nam" ? "M" : userData.gioiTinh === "Nữ" ? "F" : "O";
+      await updateUser(userToEdit.maNguoiDung, {
+        ...userData,
+        gioiTinh: mappedGender,
+      });
+      showToast("success", "Cập nhật người dùng thành công!");
+      setIsEditModalOpen(false);
+      setUserToEdit(null);
+      loadUsers(currentPage, searchTerm);
+    } catch (err) {
+      console.error("Lỗi cập nhật người dùng:", err);
+      showToast("error", "Không thể cập nhật người dùng. Vui lòng thử lại!");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -288,7 +290,7 @@ const AdminUsers = () => {
       <AdminUsersTable
         users={users}
         loading={loading}
-        onViewDetails={handleViewDetails}
+        onEdit={handleOpenEditModal}
         onDelete={handleOpenDeleteModal}
       />
 
@@ -298,21 +300,6 @@ const AdminUsers = () => {
         totalPages={totalPages}
         onPageChange={handlePageChange}
         loading={loading}
-      />
-
-      {/* Detail Modal Component */}
-      <AdminUsersDetailModal
-        isOpen={isDetailModalOpen}
-        user={selectedUser}
-        tempStatus={tempStatus}
-        isSaving={isSaving}
-        isHidden={activeTab === "hidden"}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedUser(null);
-        }}
-        onStatusChange={setTempStatus}
-        onSave={handleSaveStatus}
       />
 
       {/* Delete Modal Component */}
@@ -333,6 +320,18 @@ const AdminUsers = () => {
         isCreating={isCreating}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateUser}
+      />
+
+      {/* Edit Modal Component */}
+      <AdminUsersEditModal
+        isOpen={isEditModalOpen}
+        isSaving={isSavingEdit}
+        user={userToEdit}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setUserToEdit(null);
+        }}
+        onSave={handleEditUser}
       />
     </div>
   );
