@@ -6,6 +6,7 @@ import ListCondition from "@/pages/AdminPostProduct/ListCondition/ListCondition"
 import ImageEditor from "./ImageEditor";
 import supabase from "@/lib/supabaseClient";
 import Loading from "@/components/common/Loading";
+import ListStatus from "./ListStatus";
 
 function EditModal({
   productId,
@@ -24,6 +25,7 @@ function EditModal({
     soLuongDaBan: 0,
     categoryId: 0,
     tinhTrangId: 0,
+    statusId: 0,
     kichThuoc: "",
     images: [],
     deleteImageIds: [],
@@ -47,6 +49,7 @@ function EditModal({
           soLuongDaBan: data.soLuongDaBan,
           categoryId: data.maTheLoai,
           tinhTrangId: data.maTinhTrang,
+          statusId: data.maTrangThai,
           kichThuoc: data.kichCo,
           images: data.images,
         };
@@ -113,6 +116,7 @@ function EditModal({
                 ...p,
                 tenSanPham: form.tenSanPham,
                 giaSanPham: form.giaBan,
+                statusId: form.statusId,
               }
             : p,
         ),
@@ -161,6 +165,8 @@ function EditModal({
               categoryId={form.categoryId}
               handleChange={handleChange}
             />
+
+            <ListStatus statusId={form.statusId} handleChange={handleChange} />
 
             <div className="space-y-1">
               <label className="text-sm font-semibold">Tên sản phẩm</label>
