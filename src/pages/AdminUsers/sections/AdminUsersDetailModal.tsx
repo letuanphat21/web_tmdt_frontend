@@ -102,7 +102,7 @@ const AdminUsersDetailModal = ({
               Giới tính
             </label>
             <p className="text-sm text-gray-800 bg-gray-50 p-3 rounded-lg">
-              {user.gioiTinh || "N/A"}
+              {user.gioiTinh === "M" ? "Nam" : user.gioiTinh === "F" ? "Nữ" : user.gioiTinh === "O" ? "Khác" : (user.gioiTinh || "N/A")}
             </p>
           </div>
 

@@ -57,3 +57,7 @@ export const searchHiddenUsers = (searchTerm: string, page: number = 0, size: nu
 // Tạo người dùng mới
 export const createUser = (userData: Omit<User, "maNguoiDung" | "avatar">) =>
   axiosClient.post<unknown, { data: User }>("/admin/users", userData);
+
+// Cập nhật thông tin người dùng
+export const updateUser = (maNguoiDung: number, userData: Omit<User, "maNguoiDung" | "avatar">) =>
+  axiosClient.put<unknown, { data: User }>(`/admin/users/${maNguoiDung}`, userData);
