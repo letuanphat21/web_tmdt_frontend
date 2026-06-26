@@ -1,6 +1,12 @@
 import axiosClient from "@/service/axiosClient";
 
-export type SellerListingFilter = "ALL" | "ACTIVE" | "PENDING" | "SOLD_OUT";
+export type SellerListingFilter =
+  | "ALL"
+  | "ACTIVE"
+  | "DEACTIVE"
+  | "REJECTED"
+  | "PENDING"
+  | "SOLD_OUT";
 
 export interface ProductImageSeller {
   maHinhAnh: number;

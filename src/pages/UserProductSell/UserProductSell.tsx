@@ -15,11 +15,19 @@ import {
 
 const PAGE_SIZE = 6;
 
-type ProductFilter = "ALL" | "ACTIVE" | "PENDING REVIEW" | "SOLD OUT";
+type ProductFilter =
+  | "ALL"
+  | "ACTIVE"
+  | "DEACTIVE"
+  | "REJECTED"
+  | "PENDING REVIEW"
+  | "SOLD OUT";
 
 const FILTER_TO_API: Record<ProductFilter, SellerListingFilter> = {
   ALL: "ALL",
   ACTIVE: "ACTIVE",
+  DEACTIVE: "DEACTIVE",
+  REJECTED: "REJECTED",
   "PENDING REVIEW": "PENDING",
   "SOLD OUT": "SOLD_OUT",
 };
@@ -27,6 +35,8 @@ const FILTER_TO_API: Record<ProductFilter, SellerListingFilter> = {
 const FILTER_TABS: { key: ProductFilter; label: string }[] = [
   { key: "ALL", label: "Tất cả" },
   { key: "ACTIVE", label: "Đang bán" },
+  { key: "DEACTIVE", label: "Không bán" },
+  { key: "REJECTED", label: "Bị từ chối" },
   { key: "PENDING REVIEW", label: "Chờ duyệt" },
   { key: "SOLD OUT", label: "Hết hàng" },
 ];

@@ -16,7 +16,7 @@ interface UserProductSellListProps {
 const statusBadgeClass = (status: string) => {
   if (status === "ACTIVE") return "bg-green-600";
   if (status === "PENDING") return "bg-rose-700";
-  if (status === "INACTIVE") return "bg-amber-600";
+  if (status === "DEACTIVE") return "bg-amber-600";
   if (status === "REJECTED") return "bg-red-700";
   if (status === "SOLD OUT") return "bg-gray-500";
   return "bg-gray-500";
