@@ -11,6 +11,8 @@ import type { Product } from "@/services/homeService";
 import { getAISuggestions } from "@/services/aiService";
 import type { AISuggestion } from "@/services/aiService";
 import CommentSection from "@/components/common/CommentSection";
+import ReviewModal from "@/components/common/ReviewModal";
+import { kiemTraDaDanhGia, kiemTraCoTheDanhGia } from "@/services/reviewService";
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,15 +31,22 @@ const ProductDetail: React.FC = () => {
   // Sản phẩm cùng shop
   const [shopProducts, setShopProducts] = useState<Product[]>([]);
   const [loadingShop, setLoadingShop] = useState(false);
+  const [showAllShop, setShowAllShop] = useState(false); // hiện 4 hoặc tất cả
 
   // AI gợi ý
   const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [loadingAI, setLoadingAI] = useState(false);
 
+  // Đánh giá trong trang chi tiết
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [daDanhGia, setDaDanhGia] = useState(false);
+  const [coTheDanhGia, setCoTheDanhGia] = useState(false); // đã mua + đơn thành công
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     setShopProducts([]);
+    setShowAllShop(false);
     setAiSuggestions([]);
 
     getProductDetail(id)
@@ -45,6 +54,25 @@ const ProductDetail: React.FC = () => {
         const productData = (res as unknown as { data: ProductDetailDTO }).data || res;
         setProduct(productData as unknown as ProductDetailDTO);
         setSelectedImage(0);
+
+        // Kiểm tra user đã mua sản phẩm này chưa (chỉ khi đã đăng nhập)
+        if (isAuthenticated) {
+          Promise.all([
+            kiemTraDaDanhGia(Number(id)),
+            kiemTraCoTheDanhGia(Number(id)),
+          ])
+            .then(([danhGiaRes, coTheRes]) => {
+              const da = (danhGiaRes as unknown as { data: { daDanhGia: boolean } })
+                .data?.daDanhGia ?? false;
+              const coThe = (coTheRes as unknown as { data: { coTheDanhGia: boolean } })
+                .data?.coTheDanhGia ?? false;
+              setDaDanhGia(da);
+              setCoTheDanhGia(coThe);
+            })
+            .catch(() => {
+              setCoTheDanhGia(false);
+            });
+        }
 
         // Fetch sản phẩm cùng shop
         if ((productData as unknown as ProductDetailDTO).maNguoiBan) {
@@ -188,7 +216,12 @@ const ProductDetail: React.FC = () => {
             <div className="border-t border-b border-[#E5E5E5] py-4 space-y-2">
               <p className="text-[14px] text-[#666]">
                 <span className="font-semibold text-[#1A1C19]">Người bán: </span>
-                {product.tenNguoiBan || product.email}
+                <Link
+                  to={`/store/${product.maNguoiBan}`}
+                  className="text-[#49613E] hover:underline font-medium"
+                >
+                  {product.tenNguoiBan || product.email}
+                </Link>
               </p>
               <p className="text-[14px] text-[#666]">
                 <span className="font-semibold text-[#1A1C19]">Danh mục: </span>
@@ -197,8 +230,8 @@ const ProductDetail: React.FC = () => {
               <p className="text-[14px]">
                 <span className="font-semibold text-[#1A1C19]">Kho hàng: </span>
                 {product.soLuong > 0
-                  ? <span className="text-[#49613E]">Còn {product.soLuong} sản phẩm</span>
-                  : <span className="text-[#E74C3C]">Đã hết hàng</span>}
+                  ? <span className="text-[#49613E]">Còn hàng</span>
+                  : <span className="text-[#E74C3C]">Hết hàng</span>}
               </p>
             </div>
 
@@ -278,11 +311,13 @@ const ProductDetail: React.FC = () => {
                 <Store className="w-5 h-5 text-[#49613E]" />
                 <h2 className="text-[20px] font-bold text-[#1A1C19]">
                   Sản phẩm khác của{" "}
-                  <span className="text-[#49613E]">{product.tenNguoiBan || product.email}</span>
+                  <Link to={`/store/${product.maNguoiBan}`} className="text-[#49613E] hover:underline">
+                    {product.tenNguoiBan || product.email}
+                  </Link>
                 </h2>
               </div>
               <Link
-                to={`/search`}
+                to={`/store/${product.maNguoiBan}`}
                 className="text-sm text-[#49613E] hover:underline flex items-center gap-1"
               >
                 Xem tất cả <ChevronRight className="w-4 h-4" />
@@ -302,46 +337,80 @@ const ProductDetail: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {shopProducts.map((p) => (
-                  <Link
-                    key={p.maSanPham}
-                    to={`/product/${p.maSanPham}`}
-                    className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
-                  >
-                    <div className="h-48 overflow-hidden bg-[#F9FAF4]">
-                      <img
-                        src={p.hinhAnhDaiDien || "https://via.placeholder.com/300x300?text=No+Image"}
-                        alt={p.tenSanPham}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-sm font-medium text-[#1A1C19] truncate group-hover:text-[#49613E] transition-colors">
-                        {p.tenSanPham}
-                      </p>
-                      <p className="text-sm font-bold text-[#49613E] mt-1">
-                        {p.giaSanPham.toLocaleString("vi-VN")}đ
-                      </p>
-                      {p.danhGia > 0 && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[#FFA500] text-xs">★</span>
-                          <span className="text-xs text-gray-500">{p.danhGia.toFixed(1)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(showAllShop ? shopProducts : shopProducts.slice(0, 4)).map((p) => (
+                    <Link
+                      key={p.maSanPham}
+                      to={`/product/${p.maSanPham}`}
+                      className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                    >
+                      <div className="h-48 overflow-hidden bg-[#F9FAF4]">
+                        <img
+                          src={p.hinhAnhDaiDien || "https://via.placeholder.com/300x300?text=No+Image"}
+                          alt={p.tenSanPham}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium text-[#1A1C19] truncate group-hover:text-[#49613E] transition-colors">
+                          {p.tenSanPham}
+                        </p>
+                        <p className="text-sm font-bold text-[#49613E] mt-1">
+                          {p.giaSanPham.toLocaleString("vi-VN")}đ
+                        </p>
+                        {p.danhGia > 0 && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[#FFA500] text-xs">★</span>
+                            <span className="text-xs text-gray-500">{p.danhGia.toFixed(1)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Nút Xem thêm / Thu gọn */}
+                {shopProducts.length > 4 && (
+                  <div className="flex justify-center mt-5">
+                    <button
+                      onClick={() => setShowAllShop(!showAllShop)}
+                      className="flex items-center gap-2 px-6 py-2.5 border border-[#49613E] text-[#49613E] rounded-full text-sm font-semibold hover:bg-[#F4FBEE] transition-colors"
+                    >
+                      {showAllShop ? "Thu gọn ↑" : `Xem thêm ${shopProducts.length - 4} sản phẩm ↓`}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
 
         {/* ── ĐÁNH GIÁ ── */}
         <div className="border-t border-[#E5E5E5] pt-8">
-          <h2 className="text-[24px] font-bold text-[#1A1C19] mb-6">
-            Đánh giá từ khách hàng ({product.soLuongDanhGia || 0})
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-[24px] font-bold text-[#1A1C19]">
+              Đánh giá từ khách hàng ({product.soLuongDanhGia || 0})
+            </h2>
+
+            {/* Nút đánh giá — hiện khi đã đăng nhập */}
+            {isAuthenticated && coTheDanhGia && (
+              daDanhGia ? (
+                <span className="flex items-center gap-1 text-sm text-[#FFA500] font-semibold">
+                  ★ Bạn đã đánh giá sản phẩm này
+                </span>
+              ) : (
+                <button
+                  onClick={() => setShowReviewModal(true)}
+                  className="flex items-center gap-2 px-5 py-2 border-2 border-[#49613E] text-[#49613E]
+                             font-semibold rounded-full hover:bg-[#49613E] hover:text-white
+                             transition-colors text-sm"
+                >
+                  ★ Viết đánh giá
+                </button>
+              )
+            )}
+          </div>
           {product.danhGias && product.danhGias.length > 0 ? (
             <div className="space-y-4">
               {product.danhGias.map((review) => (
@@ -374,6 +443,26 @@ const ProductDetail: React.FC = () => {
         <CommentSection maSanPham={product.maSanPham} />
 
       </div>
+
+      {/* Modal đánh giá */}
+      {showReviewModal && (
+        <ReviewModal
+          maSanPham={product.maSanPham}
+          tenSanPham={product.tenSanPham}
+          hinhAnh={product.hinhAnhs?.[0]}
+          onClose={() => setShowReviewModal(false)}
+          onSuccess={() => {
+            setDaDanhGia(true);
+            // Reload product để cập nhật điểm
+            getProductDetail(id!)
+              .then((res) => {
+                const d = (res as unknown as { data: ProductDetailDTO }).data || res;
+                setProduct(d as unknown as ProductDetailDTO);
+              })
+              .catch(() => {});
+          }}
+        />
+      )}
     </div>
   );
 };

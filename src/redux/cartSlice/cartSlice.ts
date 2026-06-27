@@ -63,6 +63,20 @@ const cartSlice = createSlice({
       state.cart = null;
       state.error = null;
     },
+    // Optimistic remove — xóa ngay trước khi API trả về
+    optimisticRemoveItem: (state, action: PayloadAction<number>) => {
+      if (state.cart) {
+        state.cart.items = state.cart.items.filter(
+          (item) => item.maItem !== action.payload
+        );
+        state.cart.tongSoLuong = state.cart.items.reduce(
+          (sum, item) => sum + item.soLuong, 0
+        );
+        state.cart.tongTien = state.cart.items.reduce(
+          (sum, item) => sum + item.giaSanPham * item.soLuong, 0
+        );
+      }
+    },
   },
   extraReducers: (builder) => {
     const handlePending = (state: CartState) => {
@@ -88,7 +102,10 @@ const cartSlice = createSlice({
       .addCase(addItemToCart.pending, handlePending)
       .addCase(addItemToCart.fulfilled, handleFulfilled)
       .addCase(addItemToCart.rejected, handleRejected)
-      .addCase(removeItemFromCart.pending, handlePending)
+      .addCase(removeItemFromCart.pending, (state) => {
+        // Không set loading=true khi xóa để tránh nháy UI
+        state.error = null;
+      })
       .addCase(removeItemFromCart.fulfilled, handleFulfilled)
       .addCase(removeItemFromCart.rejected, handleRejected)
       .addCase(updateItemQty.pending, handlePending)
@@ -101,5 +118,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { resetCart } = cartSlice.actions;
+export const { resetCart, optimisticRemoveItem } = cartSlice.actions;
 export default cartSlice;

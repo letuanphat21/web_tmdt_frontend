@@ -10,6 +10,7 @@ import NotFoundPage from "@/pages/NotFoundPage";
 import KichHoatTaiKhoan from "@/pages/KichHoatTaiKhoan";
 import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
 import VNPayReturn from "@/pages/VNPayReturn";
+import StorePage from "@/pages/StorePage";
 
 const publicRoutes = [
   {
@@ -53,6 +54,10 @@ const publicRoutes = [
   {
     path: "/payment/vnpay/return",
     element: <VNPayReturn />,
+  },
+  {
+    path: "/store/:sellerId",
+    element: <StorePage />,
   },
 ];
 

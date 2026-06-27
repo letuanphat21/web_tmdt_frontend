@@ -15,16 +15,18 @@ const tabs = [
   "Tất cả",
   "Chờ duyệt",
   "Đã duyệt",
+  "Thành công",
   "Đã thanh toán",
   "Đã hủy",
 ] as const;
 type Tab = (typeof tabs)[number];
 
 const statusColor: Record<string, string> = {
-  "Chờ duyệt": "bg-[#FFF4E5] text-[#C2781F]",
-  "Đã duyệt": "bg-[#E8F2F7] text-[#2C5A78]",
+  "Chờ duyệt":     "bg-[#FFF4E5] text-[#C2781F]",
+  "Đã duyệt":      "bg-[#E8F2F7] text-[#2C5A78]",
+  "Thành công":    "bg-[#E8F5EB] text-[#2B6C3F]",
   "Đã thanh toán": "bg-[#E8F5EB] text-[#2B6C3F]",
-  "Đã hủy": "bg-[#FDE8E8] text-[#9D2B2B]",
+  "Đã hủy":        "bg-[#FDE8E8] text-[#9D2B2B]",
 };
 
 const LY_DO_HUY = [
@@ -73,9 +75,9 @@ function UserBuyOrder() {
       const res = await getDonHangCuaUser();
       setOrders(res.data);
 
-      // Kiểm tra đã đánh giá cho các sản phẩm trong đơn "Đã duyệt" / "Đã thanh toán"
+      // Kiểm tra đã đánh giá — đơn "Đã duyệt" hoặc "Thành công"
       const duyetOrders = res.data.filter(
-        (o) => o.trangThai === "Đã duyệt" || o.trangThai === "Đã thanh toán",
+        (o) => o.trangThai === "Đã duyệt" || o.trangThai === "Thành công",
       );
       const newMap: Record<number, boolean> = {};
       await Promise.all(
@@ -326,9 +328,8 @@ function UserBuyOrder() {
                       </p>
                     </Link>
 
-                    {/* Nút đánh giá — chỉ hiện khi đơn "Đã duyệt" hoặc "Đã thanh toán" */}
-                    {(order.trangThai === "Đã duyệt" ||
-                      order.trangThai === "Đã thanh toán") &&
+                    {/* Nút đánh giá — hiện khi đơn "Đã duyệt" hoặc "Thành công" */}
+                    {(order.trangThai === "Đã duyệt" || order.trangThai === "Thành công") &&
                       (daDanhGiaMap[ct.maSanPham] ? (
                         <span className="flex items-center gap-1 text-xs text-[#FFA500] font-medium flex-shrink-0">
                           <Star size={13} className="fill-[#FFA500]" /> Đã đánh

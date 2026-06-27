@@ -7,6 +7,7 @@ import {
   fetchCart,
   removeItemFromCart,
   updateItemQty,
+  optimisticRemoveItem,
 } from "@/redux/cartSlice/cartSlice";
 
 const SHIPPING_FEE = 30000;
@@ -28,6 +29,8 @@ const Cart: React.FC = () => {
   }, [isAuthenticated, dispatch]);
 
   const handleRemove = (maItem: number) => {
+    // Optimistic update: xóa ngay khỏi UI, không chờ API
+    dispatch(optimisticRemoveItem(maItem));
     dispatch(removeItemFromCart(maItem));
   };
 
