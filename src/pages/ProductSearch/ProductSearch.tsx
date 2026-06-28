@@ -88,13 +88,8 @@ const ProductSearch = () => {
       else if (sortBy === "price-desc") { params.set("sort", "giaSanPham"); params.set("direction", "DESC"); }
       else { params.set("sort", "maSanPham"); params.set("direction", "DESC"); }
 
-      const token = localStorage.getItem("token");
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const res = await publicAxios.get(`/products/search?${params.toString()}`, { headers });
+      // Trang tìm kiếm công khai — không gửi token để không lọc sản phẩm của bản thân
+      const res = await publicAxios.get(`/products/search?${params.toString()}`);
       const data = res as { data: { content: Product[] } };
       const fetchedProducts = data?.data?.content || [];
       setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
