@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useDispatch } from "react-redux";
 import authSlice from "@/redux/authSlice/authSlice";
+import { resetCart } from "@/redux/cartSlice/cartSlice";
 import { useState } from "react";
 import Loading from "@/components/common/Loading";
 import { disconnectSocket } from "@/websocket/chatSocket";
@@ -45,6 +46,7 @@ const UserDropdown = ({ user }: UserDropdownProps) => {
           disconnectSocket();
           localStorage.removeItem("token");
           dispatch(authSlice.actions.logout());
+          dispatch(resetCart());
           navigate("/");
         }
       })

@@ -16,6 +16,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import authSlice from "@/redux/authSlice/authSlice";
+import { resetCart } from "@/redux/cartSlice/cartSlice";
 import Loading from "../common/Loading";
 import { disconnectSocket } from "@/websocket/chatSocket";
 
@@ -38,6 +39,7 @@ function SideBarUser() {
           disconnectSocket();
           localStorage.removeItem("token");
           dispatch(authSlice.actions.logout());
+          dispatch(resetCart());
           navigate("/");
         }
       })

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Leaf, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -28,10 +28,21 @@ const Cart: React.FC = () => {
     }
   }, [isAuthenticated, dispatch]);
 
-  const handleRemove = (maItem: number) => {
-    // Optimistic update: xóa ngay khỏi UI, không chờ API
-    dispatch(optimisticRemoveItem(maItem));
-    dispatch(removeItemFromCart(maItem));
+  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
+  const showToast = (type: "success" | "error", msg: string) => {
+    setToast({ type, msg });
+    setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleRemove = async (maItem: number) => {
+    try {
+      await dispatch(removeItemFromCart(maItem)).unwrap();
+      showToast("success", "Đã xóa sản phẩm khỏi giỏ hàng!");
+    } catch (err) {
+      console.error("Lỗi khi xóa sản phẩm:", err);
+      showToast("error", "Không thể xóa sản phẩm. Vui lòng thử lại!");
+    }
   };
 
   const handleUpdateQty = (maItem: number, soLuong: number) => {
@@ -72,6 +83,12 @@ const Cart: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans text-[#1A1C19]">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium transition-all ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}>
+          {toast.type === "success" ? "✓" : "✕"} {toast.msg}
+        </div>
+      )}
       {/* Breadcrumb */}
       <div className="px-8 py-4 text-sm text-gray-500">
         <span

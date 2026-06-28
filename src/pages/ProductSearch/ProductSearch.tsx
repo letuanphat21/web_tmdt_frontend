@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import { useSearchParams, Link } from "react-router-dom";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
-import type { AppDispatch } from "@/redux/store";
+import type { AppDispatch, RootState } from "@/redux/store";
 import { ShoppingCart, Camera } from "lucide-react";
 import publicAxios from "@/service/publicAxios";
 
@@ -29,6 +29,8 @@ interface Status {
 
 const ProductSearch = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("query") || "";
   const [sortBy, setSortBy] = useState("newest");
@@ -126,6 +128,19 @@ const ProductSearch = () => {
     setImagePreview(null);
   };
 
+  const hasActiveFilters = useMemo(() => {
+    return (
+      selectedCategories.length > 0 ||
+      selectedStatuses.length > 0 ||
+      minPrice !== "" ||
+      maxPrice !== "" ||
+      sortBy !== "newest" ||
+      searchTerm.trim() !== "" ||
+      uploadedImage !== null
+    );
+  }, [selectedCategories, selectedStatuses, minPrice, maxPrice, sortBy, searchTerm, uploadedImage]);
+
+  // Handle quantity change
   const handleQuantityChange = (productId: number, value: string) => {
     const qty = parseInt(value) || 1;
     setQuantities((prev) => ({ ...prev, [productId]: Math.max(1, Math.min(qty, 100)) }));
@@ -167,12 +182,28 @@ const ProductSearch = () => {
   };
 
   const handleAddToCart = async (product: Product) => {
-    try {
-      await dispatch(addItemToCart({ maSanPham: product.maSanPham, soLuong: quantities[product.maSanPham] || 1 }));
-      showToast("success", `Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
-      setQuantities((prev) => ({ ...prev, [product.maSanPham]: 1 }));
-    } catch {
+    if (!isAuthenticated) {
       showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
+      setTimeout(() => navigate("/login"), 1200);
+      return;
+    }
+
+    const quantity = quantities[product.maSanPham] || 1;
+    try {
+      await dispatch(
+        addItemToCart({
+          maSanPham: product.maSanPham,
+          soLuong: quantity,
+        }),
+      ).unwrap();
+      showToast("success", `Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
+      setQuantities((prev) => ({
+        ...prev,
+        [product.maSanPham]: 1,
+      }));
+    } catch (err) {
+      console.error("Lỗi thêm vào giỏ hàng:", err);
+      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng thử lại!");
     }
   };
 
@@ -213,7 +244,18 @@ const ProductSearch = () => {
           <div className="w-[280px] flex-shrink-0 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm h-fit">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-[18px] font-bold text-[#1A1C19]">Bộ Lọc</h2>
-              <button onClick={handleClearFilters} className="text-sm text-gray-500 hover:text-[#49613E] cursor-pointer">Xóa bộ lọc</button>
+
+              <button
+                onClick={handleClearFilters}
+                disabled={!hasActiveFilters}
+                className={`text-sm transition-all ${
+                  hasActiveFilters
+                    ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
+                    : "text-gray-300 cursor-not-allowed pointer-events-none"
+                }`}
+              >
+                Xóa bộ lọc
+              </button>
             </div>
 
             <div className="mb-6 border-b border-gray-100 pb-6">
