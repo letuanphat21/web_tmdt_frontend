@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { getTopSellers } from '@/services/homeService';
 import type { Seller } from '@/services/homeService';
 
@@ -72,9 +73,12 @@ const SellerSection = () => {
                                 {s.soSanPham} sản phẩm • {s.soDienThoai}
                             </p>
 
-                            <button className="mt-4 w-full bg-[#49613E] text-white px-4 py-2 rounded-full text-sm hover:bg-[#3a4830] transition">
-                                Ghé thăm Store
-                            </button>
+                            <Link
+                              to={`/store/${s.maNguoiDung}`}
+                              className="mt-4 block w-full bg-[#49613E] text-white px-4 py-2 rounded-full text-sm hover:bg-[#3a4830] transition text-center"
+                            >
+                              Ghé thăm Store
+                            </Link>
 
                         </div>
                     ))}

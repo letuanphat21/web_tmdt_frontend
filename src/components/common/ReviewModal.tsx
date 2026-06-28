@@ -10,9 +10,10 @@ interface Props {
   onSuccess: () => void;
 }
 
+const starLabels = ["", "Tệ", "Không tốt", "Bình thường", "Tốt", "Tuyệt vời"];
+
 const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Props) => {
   const [diem, setDiem] = useState(0);
-  const [hover, setHover] = useState(0);
   const [nhanXet, setNhanXet] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +21,6 @@ const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Pro
   const handleSubmit = async () => {
     if (diem === 0) { setError("Vui lòng chọn số sao đánh giá."); return; }
     if (!nhanXet.trim()) { setError("Vui lòng nhập nhận xét."); return; }
-
     setLoading(true);
     setError(null);
     try {
@@ -35,8 +35,6 @@ const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Pro
       setLoading(false);
     }
   };
-
-  const starLabels = ["", "Tệ", "Không tốt", "Bình thường", "Tốt", "Tuyệt vời"];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -58,24 +56,41 @@ const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Pro
           <p className="text-sm font-medium text-slate-700 line-clamp-2">{tenSanPham}</p>
         </div>
 
-        {/* Chọn sao */}
+        {/* Chọn sao — dùng CSS :hover thay vì JS state để tránh giật */}
+        <style>{`
+          .star-group { display: flex; gap: 8px; direction: ltr; }
+          .star-group button { background: none; border: none; cursor: pointer; padding: 2px; transition: transform 0.1s; }
+          .star-group button:hover { transform: scale(1.2); }
+          .star-group button svg { transition: fill 0.1s, stroke 0.1s; }
+          /* Highlight các sao từ đầu đến sao được hover — dùng CSS sibling */
+          .star-group:has(button:nth-child(1):hover) button:nth-child(1) svg,
+          .star-group:has(button:nth-child(2):hover) button:nth-child(1) svg,
+          .star-group:has(button:nth-child(2):hover) button:nth-child(2) svg,
+          .star-group:has(button:nth-child(3):hover) button:nth-child(1) svg,
+          .star-group:has(button:nth-child(3):hover) button:nth-child(2) svg,
+          .star-group:has(button:nth-child(3):hover) button:nth-child(3) svg,
+          .star-group:has(button:nth-child(4):hover) button:nth-child(1) svg,
+          .star-group:has(button:nth-child(4):hover) button:nth-child(2) svg,
+          .star-group:has(button:nth-child(4):hover) button:nth-child(3) svg,
+          .star-group:has(button:nth-child(4):hover) button:nth-child(4) svg,
+          .star-group:has(button:nth-child(5):hover) button svg { fill: #FFA500; stroke: #FFA500; }
+        `}</style>
+
         <div className="flex flex-col items-center gap-2 mb-5">
-          <div className="flex gap-2">
+          <div className="star-group">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
-                onMouseEnter={() => setHover(star)}
-                onMouseLeave={() => setHover(0)}
                 onClick={() => setDiem(star)}
-                className="transition-transform hover:scale-125 focus:outline-none"
+                title={starLabels[star]}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  className="w-10 h-10 transition-colors duration-150"
-                  fill={star <= (hover || diem) ? "#FFA500" : "none"}
-                  stroke={star <= (hover || diem) ? "#FFA500" : "#D1D5DB"}
+                  className="w-10 h-10"
+                  fill={star <= diem ? "#FFA500" : "none"}
+                  stroke={star <= diem ? "#FFA500" : "#D1D5DB"}
                   strokeWidth="1.5"
                 >
                   <path
@@ -87,9 +102,9 @@ const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Pro
               </button>
             ))}
           </div>
-          {(hover || diem) > 0 && (
+          {diem > 0 && (
             <span className="text-sm font-semibold text-[#FFA500]">
-              {starLabels[hover || diem]}
+              {starLabels[diem]}
             </span>
           )}
         </div>
@@ -108,7 +123,6 @@ const ReviewModal = ({ maSanPham, tenSanPham, hinhAnh, onClose, onSuccess }: Pro
 
         {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
 
-        {/* Buttons */}
         <div className="flex gap-3">
           <button onClick={onClose}
             className="flex-1 py-3 border border-slate-300 rounded-full text-sm
