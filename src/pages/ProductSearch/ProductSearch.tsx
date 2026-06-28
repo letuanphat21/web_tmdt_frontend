@@ -1,8 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { useDispatch } from "react-redux";
-import { useSearchParams, Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
-import type { AppDispatch } from "@/redux/store";
+import type { AppDispatch, RootState } from "@/redux/store";
 import { ShoppingCart, Camera } from "lucide-react";
 
 interface Product {
@@ -28,6 +28,8 @@ interface Status {
 
 const ProductSearch = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("query") || "";
   const [sortBy, setSortBy] = useState("newest");
@@ -260,6 +262,18 @@ const ProductSearch = () => {
     fetchInitialProducts();
   };
 
+  const hasActiveFilters = useMemo(() => {
+    return (
+      selectedCategories.length > 0 ||
+      selectedStatuses.length > 0 ||
+      minPrice !== "" ||
+      maxPrice !== "" ||
+      sortBy !== "newest" ||
+      searchTerm.trim() !== "" ||
+      uploadedImage !== null
+    );
+  }, [selectedCategories, selectedStatuses, minPrice, maxPrice, sortBy, searchTerm, uploadedImage]);
+
   // Handle quantity change
   const handleQuantityChange = (productId: number, value: string) => {
     const qty = parseInt(value) || 0;
@@ -278,6 +292,12 @@ const ProductSearch = () => {
   };
 
   const handleAddToCart = async (product: Product) => {
+    if (!isAuthenticated) {
+      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
+      setTimeout(() => navigate("/login"), 1200);
+      return;
+    }
+
     const quantity = quantities[product.maSanPham] || 1;
     try {
       await dispatch(
@@ -285,7 +305,7 @@ const ProductSearch = () => {
           maSanPham: product.maSanPham,
           soLuong: quantity,
         }),
-      );
+      ).unwrap();
       showToast("success", `Đã thêm "${product.tenSanPham}" vào giỏ hàng!`);
       setQuantities((prev) => ({
         ...prev,
@@ -293,7 +313,7 @@ const ProductSearch = () => {
       }));
     } catch (err) {
       console.error("Lỗi thêm vào giỏ hàng:", err);
-      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng đăng nhập!");
+      showToast("error", "Không thể thêm vào giỏ hàng. Vui lòng thử lại!");
     }
   };
 
@@ -358,7 +378,12 @@ const ProductSearch = () => {
 
               <button
                 onClick={handleClearFilters}
-                className="text-sm text-gray-500 hover:text-[#49613E] cursor-pointer"
+                disabled={!hasActiveFilters}
+                className={`text-sm transition-all ${
+                  hasActiveFilters
+                    ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
+                    : "text-gray-300 cursor-not-allowed pointer-events-none"
+                }`}
               >
                 Xóa bộ lọc
               </button>

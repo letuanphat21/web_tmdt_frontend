@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import authSlice from "@/redux/authSlice/authSlice";
+import { resetCart } from "@/redux/cartSlice/cartSlice";
 import { disconnectSocket } from "@/websocket/chatSocket";
 
 // Danh sách các menu theo đúng Figma
@@ -37,6 +38,7 @@ const AdminLayout = () => {
           disconnectSocket();
           localStorage.removeItem("token");
           dispatch(authSlice.actions.logout());
+          dispatch(resetCart());
           navigate("/");
         }
       })
