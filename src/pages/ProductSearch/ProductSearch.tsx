@@ -30,7 +30,9 @@ interface Status {
 const ProductSearch = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  );
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTerm = searchParams.get("query") || "";
   const [sortBy, setSortBy] = useState("newest");
@@ -48,7 +50,9 @@ const ProductSearch = () => {
     return [];
   };
 
-  const [selectedCategories, setSelectedCategories] = useState<number[]>(getInitialCategories());
+  const [selectedCategories, setSelectedCategories] = useState<number[]>(
+    getInitialCategories(),
+  );
   const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -68,7 +72,7 @@ const ProductSearch = () => {
         setCategories((catRes as { data: Category[] }).data || []);
         setStatuses((statRes as { data: Status[] }).data || []);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   // ── Gọi API mỗi khi keyword / filter / sort thay đổi ─────────────────────
@@ -77,19 +81,37 @@ const ProductSearch = () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set("keyword", searchTerm.trim());
-      if (selectedCategories.length === 1) params.set("categoryId", String(selectedCategories[0]));
-      if (selectedStatuses.length === 1) params.set("statusId", String(selectedStatuses[0]));
+      if (selectedCategories.length === 1)
+        params.set("categoryId", String(selectedCategories[0]));
+      if (selectedStatuses.length === 1)
+        params.set("statusId", String(selectedStatuses[0]));
       if (minPrice) params.set("minPrice", minPrice);
       if (maxPrice) params.set("maxPrice", maxPrice);
       params.set("size", "50");
 
       // sort
-      if (sortBy === "price-asc") { params.set("sort", "giaSanPham"); params.set("direction", "ASC"); }
-      else if (sortBy === "price-desc") { params.set("sort", "giaSanPham"); params.set("direction", "DESC"); }
-      else { params.set("sort", "maSanPham"); params.set("direction", "DESC"); }
+      if (sortBy === "price-asc") {
+        params.set("sort", "giaSanPham");
+        params.set("direction", "ASC");
+      } else if (sortBy === "price-desc") {
+        params.set("sort", "giaSanPham");
+        params.set("direction", "DESC");
+      } else {
+        params.set("sort", "maSanPham");
+        params.set("direction", "DESC");
+      }
 
       // Trang tìm kiếm công khai — không gửi token để không lọc sản phẩm của bản thân
-      const res = await publicAxios.get(`/products/search?${params.toString()}`);
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await publicAxios.get(
+        `/products/search?${params.toString()}`,
+        { headers },
+      );
       const data = res as { data: { content: Product[] } };
       const fetchedProducts = data?.data?.content || [];
       setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
@@ -98,7 +120,14 @@ const ProductSearch = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchTerm, selectedCategories, selectedStatuses, minPrice, maxPrice, sortBy]);
+  }, [
+    searchTerm,
+    selectedCategories,
+    selectedStatuses,
+    minPrice,
+    maxPrice,
+    sortBy,
+  ]);
 
   useEffect(() => {
     fetchProducts();
@@ -107,13 +136,13 @@ const ProductSearch = () => {
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCategoryChange = (categoryId: number, checked: boolean) => {
     setSelectedCategories((prev) =>
-      checked ? [...prev, categoryId] : prev.filter((id) => id !== categoryId)
+      checked ? [...prev, categoryId] : prev.filter((id) => id !== categoryId),
     );
   };
 
   const handleStatusChange = (statusId: number, checked: boolean) => {
     setSelectedStatuses((prev) =>
-      checked ? [...prev, statusId] : prev.filter((id) => id !== statusId)
+      checked ? [...prev, statusId] : prev.filter((id) => id !== statusId),
     );
   };
 
@@ -140,12 +169,23 @@ const ProductSearch = () => {
       searchTerm.trim() !== "" ||
       uploadedImage !== null
     );
-  }, [selectedCategories, selectedStatuses, minPrice, maxPrice, sortBy, searchTerm, uploadedImage]);
+  }, [
+    selectedCategories,
+    selectedStatuses,
+    minPrice,
+    maxPrice,
+    sortBy,
+    searchTerm,
+    uploadedImage,
+  ]);
 
   // Handle quantity change
   const handleQuantityChange = (productId: number, value: string) => {
     const qty = parseInt(value) || 1;
-    setQuantities((prev) => ({ ...prev, [productId]: Math.max(1, Math.min(qty, 100)) }));
+    setQuantities((prev) => ({
+      ...prev,
+      [productId]: Math.max(1, Math.min(qty, 100)),
+    }));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,22 +205,31 @@ const ProductSearch = () => {
     formData.append("threshold", "0.4");
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:8080/api/products/search-by-image", {
-        method: "POST",
-        body: formData,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await fetch(
+        "http://localhost:8080/api/products/search-by-image",
+        {
+          method: "POST",
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
       const data = await res.json();
       if (data.success) {
         const fetchedProducts = (data.data || []) as Product[];
         setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
       }
-    } catch { /* ignore */ }
-    finally { setIsSearchingByImage(false); }
+    } catch {
+      /* ignore */
+    } finally {
+      setIsSearchingByImage(false);
+    }
   };
 
   // ── Toast ──────────────────────────────────────────────────────────────────
-  const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    msg: string;
+  } | null>(null);
   const showToast = (type: "success" | "error", msg: string) => {
     setToast({ type, msg });
     setTimeout(() => setToast(null), 2500);
@@ -215,7 +264,9 @@ const ProductSearch = () => {
   return (
     <div className="bg-[#F9FAF4] min-h-screen py-8">
       {toast && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}>
+        <div
+          className={`fixed top-5 right-5 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === "success" ? "bg-[#49613E]" : "bg-red-500"}`}
+        >
           {toast.type === "success" ? "✓" : "✕"} {toast.msg}
         </div>
       )}
@@ -225,21 +276,45 @@ const ProductSearch = () => {
         <div className="mb-8 space-y-4">
           <div className="flex justify-end">
             <label className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-600 hover:text-[#49613E] hover:border-[#49613E] hover:bg-[#F4FBEE] cursor-pointer transition-all shadow-sm">
-              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
               <Camera className="w-5 h-5" />
-              <span className="text-sm font-semibold">Tìm kiếm bằng hình ảnh</span>
+              <span className="text-sm font-semibold">
+                Tìm kiếm bằng hình ảnh
+              </span>
             </label>
           </div>
           {imagePreview && (
             <div className="flex gap-4 items-center bg-white p-4 rounded-2xl border border-gray-200">
-              <img src={imagePreview} alt="Preview" className="w-16 h-16 rounded-lg object-cover" />
-              <p className="flex-1 text-sm text-gray-700 font-semibold">Tìm sản phẩm tương tự</p>
-              <button onClick={handleSearchByImage} disabled={isSearchingByImage}
-                className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all disabled:opacity-50">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="w-16 h-16 rounded-lg object-cover"
+              />
+              <p className="flex-1 text-sm text-gray-700 font-semibold">
+                Tìm sản phẩm tương tự
+              </p>
+              <button
+                onClick={handleSearchByImage}
+                disabled={isSearchingByImage}
+                className="px-6 py-2 bg-blue-600 text-white rounded-full font-bold hover:bg-blue-700 transition-all disabled:opacity-50"
+              >
                 {isSearchingByImage ? "Đang tìm..." : "Tìm kiếm"}
               </button>
-              <button onClick={() => { setUploadedImage(null); setImagePreview(null); fetchProducts(); }}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-full transition-all">✕</button>
+              <button
+                onClick={() => {
+                  setUploadedImage(null);
+                  setImagePreview(null);
+                  fetchProducts();
+                }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-full transition-all"
+              >
+                ✕
+              </button>
             </div>
           )}
         </div>
@@ -253,10 +328,11 @@ const ProductSearch = () => {
               <button
                 onClick={handleClearFilters}
                 disabled={!hasActiveFilters}
-                className={`text-sm transition-all ${hasActiveFilters
-                  ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
-                  : "text-gray-300 cursor-not-allowed pointer-events-none"
-                  }`}
+                className={`text-sm transition-all ${
+                  hasActiveFilters
+                    ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
+                    : "text-gray-300 cursor-not-allowed pointer-events-none"
+                }`}
               >
                 Xóa bộ lọc
               </button>
@@ -266,10 +342,18 @@ const ProductSearch = () => {
               <h3 className="font-semibold text-[#1A1C19] mb-4">Danh mục</h3>
               <div className="space-y-3">
                 {categories.map((item) => (
-                  <label key={item.maTheLoai} className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={selectedCategories.includes(item.maTheLoai)}
-                      onChange={(e) => handleCategoryChange(item.maTheLoai, e.target.checked)}
-                      className="w-4 h-4 accent-[#49613E] cursor-pointer" />
+                  <label
+                    key={item.maTheLoai}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(item.maTheLoai)}
+                      onChange={(e) =>
+                        handleCategoryChange(item.maTheLoai, e.target.checked)
+                      }
+                      className="w-4 h-4 accent-[#49613E] cursor-pointer"
+                    />
                     <span className="text-gray-700">{item.tenTheLoai}</span>
                   </label>
                 ))}
@@ -280,10 +364,18 @@ const ProductSearch = () => {
               <h3 className="font-semibold text-[#1A1C19] mb-4">Tình trạng</h3>
               <div className="space-y-3">
                 {statuses.map((item) => (
-                  <label key={item.maTinhTrang} className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" checked={selectedStatuses.includes(item.maTinhTrang)}
-                      onChange={(e) => handleStatusChange(item.maTinhTrang, e.target.checked)}
-                      className="w-4 h-4 accent-[#49613E] cursor-pointer" />
+                  <label
+                    key={item.maTinhTrang}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedStatuses.includes(item.maTinhTrang)}
+                      onChange={(e) =>
+                        handleStatusChange(item.maTinhTrang, e.target.checked)
+                      }
+                      className="w-4 h-4 accent-[#49613E] cursor-pointer"
+                    />
                     <span className="text-gray-700">{item.tenTinhTrang}</span>
                   </label>
                 ))}
@@ -293,14 +385,26 @@ const ProductSearch = () => {
             <div>
               <h3 className="font-semibold text-[#1A1C19] mb-4">Khoảng giá</h3>
               <div className="flex items-center gap-2">
-                <input type="text" placeholder="TỪ" value={minPrice} onChange={(e) => setMinPrice(e.target.value)}
-                  className="w-full text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:border-[#49613E]" />
+                <input
+                  type="text"
+                  placeholder="TỪ"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  className="w-full text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:border-[#49613E]"
+                />
                 <span>-</span>
-                <input type="text" placeholder="ĐẾN" value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)}
-                  className="w-full text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:border-[#49613E]" />
+                <input
+                  type="text"
+                  placeholder="ĐẾN"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="w-full text-center border border-gray-300 rounded-lg py-2 focus:outline-none focus:border-[#49613E]"
+                />
               </div>
-              <button onClick={fetchProducts}
-                className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-all cursor-pointer">
+              <button
+                onClick={fetchProducts}
+                className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-all cursor-pointer"
+              >
                 Áp dụng giá
               </button>
             </div>
@@ -310,15 +414,22 @@ const ProductSearch = () => {
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-[20px] font-bold text-[#1A1C19]">
-                {loading ? "Đang tìm kiếm..." : `Kết quả tìm kiếm (${products.length} sản phẩm)`}
+                {loading
+                  ? "Đang tìm kiếm..."
+                  : `Kết quả tìm kiếm (${products.length} sản phẩm)`}
                 {searchTerm && !loading && (
-                  <span className="text-base font-normal text-gray-500 ml-2">cho "{searchTerm}"</span>
+                  <span className="text-base font-normal text-gray-500 ml-2">
+                    cho "{searchTerm}"
+                  </span>
                 )}
               </h2>
               <div className="flex items-center gap-3">
                 <span className="text-gray-600">Sắp xếp theo:</span>
-                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:border-[#49613E] cursor-pointer">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="border border-gray-300 rounded-lg py-2 px-4 focus:outline-none focus:border-[#49613E] cursor-pointer"
+                >
                   <option value="newest">Mới nhất</option>
                   <option value="price-asc">Giá: Thấp đến cao</option>
                   <option value="price-desc">Giá: Cao đến thấp</option>
@@ -328,8 +439,11 @@ const ProductSearch = () => {
 
             {loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-                  <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl overflow-hidden animate-pulse"
+                  >
                     <div className="h-[250px] bg-gray-200" />
                     <div className="p-4 space-y-2">
                       <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -341,13 +455,17 @@ const ProductSearch = () => {
             ) : products.length === 0 ? (
               <div className="text-center py-20 text-gray-400">
                 <p className="text-lg">Không tìm thấy sản phẩm nào.</p>
-                <p className="text-sm mt-1">Thử từ khóa khác hoặc xóa bộ lọc.</p>
+                <p className="text-sm mt-1">
+                  Thử từ khóa khác hoặc xóa bộ lọc.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {products.map((item) => (
-                  <div key={item.maSanPham}
-                    className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group">
+                  <div
+                    key={item.maSanPham}
+                    className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-shadow group"
+                  >
                     <Link to={`/product/${item.maSanPham}`} className="block">
                       <div className="h-[250px] overflow-hidden relative">
                         <div className="absolute top-2 left-2 bg-[#49613E] text-white text-xs font-bold px-2 py-1 rounded z-10">
@@ -369,14 +487,27 @@ const ProductSearch = () => {
                       </div>
                     </Link>
                     <div className="flex gap-2 px-4 pb-4">
-                      <input type="number" min="1" max={item.soLuong}
+                      <input
+                        type="number"
+                        min="1"
+                        max={item.soLuong}
                         value={quantities[item.maSanPham] || 1}
-                        onChange={(e) => handleQuantityChange(item.maSanPham, e.target.value)}
+                        onChange={(e) =>
+                          handleQuantityChange(item.maSanPham, e.target.value)
+                        }
                         onClick={(e) => e.stopPropagation()}
-                        className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm focus:outline-none focus:border-[#49613E]" />
-                      <button onClick={() => handleAddToCart(item)} disabled={item.soLuong === 0}
-                        className="flex-1 flex items-center justify-center bg-[#49613E] text-white text-sm font-semibold rounded py-2 hover:bg-[#3a4d31] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        {item.soLuong === 0 ? "Hết hàng" : <ShoppingCart size={20} />}
+                        className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-sm focus:outline-none focus:border-[#49613E]"
+                      />
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        disabled={item.soLuong === 0}
+                        className="flex-1 flex items-center justify-center bg-[#49613E] text-white text-sm font-semibold rounded py-2 hover:bg-[#3a4d31] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      >
+                        {item.soLuong === 0 ? (
+                          "Hết hàng"
+                        ) : (
+                          <ShoppingCart size={20} />
+                        )}
                       </button>
                     </div>
                   </div>
