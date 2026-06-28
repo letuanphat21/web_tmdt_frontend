@@ -68,7 +68,7 @@ const ProductSearch = () => {
         setCategories((catRes as { data: Category[] }).data || []);
         setStatuses((statRes as { data: Status[] }).data || []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ── Gọi API mỗi khi keyword / filter / sort thay đổi ─────────────────────
@@ -88,9 +88,16 @@ const ProductSearch = () => {
       else if (sortBy === "price-desc") { params.set("sort", "giaSanPham"); params.set("direction", "DESC"); }
       else { params.set("sort", "maSanPham"); params.set("direction", "DESC"); }
 
-      const res = await publicAxios.get(`/products/search?${params.toString()}`);
+      const token = localStorage.getItem("token");
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await publicAxios.get(`/products/search?${params.toString()}`, { headers });
       const data = res as { data: { content: Product[] } };
-      setProducts(data?.data?.content || []);
+      const fetchedProducts = data?.data?.content || [];
+      setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
     } catch {
       setProducts([]);
     } finally {
@@ -169,7 +176,10 @@ const ProductSearch = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const data = await res.json();
-      if (data.success) setProducts(data.data || []);
+      if (data.success) {
+        const fetchedProducts = (data.data || []) as Product[];
+        setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
+      }
     } catch { /* ignore */ }
     finally { setIsSearchingByImage(false); }
   };
@@ -248,11 +258,10 @@ const ProductSearch = () => {
               <button
                 onClick={handleClearFilters}
                 disabled={!hasActiveFilters}
-                className={`text-sm transition-all ${
-                  hasActiveFilters
-                    ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
-                    : "text-gray-300 cursor-not-allowed pointer-events-none"
-                }`}
+                className={`text-sm transition-all ${hasActiveFilters
+                  ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
+                  : "text-gray-300 cursor-not-allowed pointer-events-none"
+                  }`}
               >
                 Xóa bộ lọc
               </button>
@@ -324,7 +333,7 @@ const ProductSearch = () => {
 
             {loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                {[1,2,3,4,5,6,7,8].map(i => (
+                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
                   <div key={i} className="bg-white rounded-2xl overflow-hidden animate-pulse">
                     <div className="h-[250px] bg-gray-200" />
                     <div className="p-4 space-y-2">
