@@ -106,6 +106,9 @@ function ListProductTable() {
         });
     }
   };
+
+  const handleChangeCondition = (data: any) => {};
+
   const handleSetEdit = (original: any) => {
     setEditModal(true);
     setProductId(original.maSanPham);
@@ -145,10 +148,10 @@ function ListProductTable() {
         const status = row.original.trangThai;
         let bgColor = "bg-yellow-100";
         let textColor = "text-yellow-800";
-        if (status === "approved") {
+        if (status === "APPROVED") {
           bgColor = "bg-green-100";
           textColor = "text-green-800";
-        } else if (status === "rejected") {
+        } else if (status === "REJECTED") {
           bgColor = "bg-red-100";
           textColor = "text-red-800";
         }
@@ -158,7 +161,7 @@ function ListProductTable() {
           >
             {status === "PENDING"
               ? "Chờ duyệt"
-              : status === "approved"
+              : status === "APPROVED"
                 ? "Đã duyệt"
                 : "Đã từ chối"}
           </span>
@@ -170,6 +173,7 @@ function ListProductTable() {
       header: "Hành động",
       cell: ({ row }: any) => {
         const original = row.original as any;
+        console.log("original", original.trangThai);
         return (
           <div className="flex gap-2">
             <button
@@ -180,7 +184,11 @@ function ListProductTable() {
             </button>
             <button
               onClick={() => handleChangeActive(original)}
-              className="w-24 py-1 rounded-md text-white text-sm font-medium transition-colors bg-red-600 hover:bg-red-500 active:bg-red-700"
+              className={`w-20 py-1 rounded-md text-sm font-medium transition-colors ${
+                original.active
+                  ? "text-white bg-red-600 hover:bg-red-500 active:bg-red-700"
+                  : "text-white bg-brand-primary hover:bg-[#3d4938] active:bg-[#2d3428]"
+              }`}
             >
               {original.active ? "Deactive" : "Active"}
             </button>

@@ -24,3 +24,9 @@ export const kiemTraDaDanhGia = (maSanPham: number) =>
   axiosClient.get<unknown, { data: { daDanhGia: boolean } }>(
     `/reviews/check?maSanPham=${maSanPham}`
   );
+
+/** Kiểm tra user có thể đánh giá không (đã mua + đơn Thành công/Đã duyệt) */
+export const kiemTraCoTheDanhGia = (maSanPham: number) =>
+  axiosClient.get<unknown, { data: { coTheDanhGia: boolean } }>(
+    `/reviews/can-review?maSanPham=${maSanPham}`
+  );

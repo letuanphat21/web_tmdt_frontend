@@ -7,6 +7,7 @@ import {
   fetchCart,
   removeItemFromCart,
   updateItemQty,
+  optimisticRemoveItem,
 } from "@/redux/cartSlice/cartSlice";
 
 const SHIPPING_FEE = 30000;
