@@ -18,11 +18,13 @@ const AdminCategoriesEditModal = ({
   onSave,
 }: AdminCategoriesEditModalProps) => {
   const [tenTheLoai, setTenTheLoai] = useState("");
+  const [active, setActive] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     if (category) {
       setTenTheLoai(category.tenTheLoai);
+      setActive(category.active ?? true);
       setError("");
     }
   }, [category]);
@@ -34,7 +36,7 @@ const AdminCategoriesEditModal = ({
       setError("Tên phân loại không được bỏ trống");
       return;
     }
-    onSave(category.maTheLoai, { tenTheLoai: tenTheLoai.trim() });
+    onSave(category.maTheLoai, { tenTheLoai: tenTheLoai.trim(), active });
   };
 
   if (!isOpen || !category) return null;
@@ -88,6 +90,21 @@ const AdminCategoriesEditModal = ({
             {error && (
               <p className="text-red-500 text-xs mt-1">{error}</p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Trạng thái hoạt động <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={active ? "1" : "0"}
+              onChange={(e) => setActive(e.target.value === "1")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              disabled={isSaving}
+            >
+              <option value="1">Đang hoạt động</option>
+              <option value="0">Bị ẩn</option>
+            </select>
           </div>
 
           {/* Buttons */}

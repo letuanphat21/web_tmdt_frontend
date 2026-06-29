@@ -1,4 +1,4 @@
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, RotateCcw } from "lucide-react";
 import type { User } from "@/services/adminUserService";
 
 interface AdminUsersTableProps {
@@ -6,6 +6,7 @@ interface AdminUsersTableProps {
   loading: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
+  onRestore: (user: User) => void;
 }
 
 const AdminUsersTable = ({
@@ -13,6 +14,7 @@ const AdminUsersTable = ({
   loading,
   onEdit,
   onDelete,
+  onRestore,
 }: AdminUsersTableProps) => {
   return (
     <div className="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] overflow-hidden mx-4">
@@ -81,13 +83,23 @@ const AdminUsersTable = ({
                       <Pencil size={18} />
                     </button>
 
-                    <button
-                      onClick={() => onDelete(user)}
-                      className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
-                      title="Xóa"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {user.trangThai === 0 ? (
+                      <button
+                        onClick={() => onRestore(user)}
+                        className="p-2 hover:bg-green-100 text-green-600 rounded-lg transition-colors"
+                        title="Khôi phục"
+                      >
+                        <RotateCcw size={18} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onDelete(user)}
+                        className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                        title="Xóa"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

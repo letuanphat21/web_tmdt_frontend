@@ -16,6 +16,7 @@ const AdminCategoriesCreateModal = ({
   onCreate,
 }: AdminCategoriesCreateModalProps) => {
   const [tenTheLoai, setTenTheLoai] = useState("");
+  const [active, setActive] = useState(true);
   const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,8 +25,9 @@ const AdminCategoriesCreateModal = ({
       setError("Tên phân loại không được bỏ trống");
       return;
     }
-    onCreate({ tenTheLoai: tenTheLoai.trim() });
+    onCreate({ tenTheLoai: tenTheLoai.trim(), active });
     setTenTheLoai("");
+    setActive(true);
     setError("");
   };
 
@@ -68,6 +70,21 @@ const AdminCategoriesCreateModal = ({
             {error && (
               <p className="text-red-500 text-xs mt-1">{error}</p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Trạng thái hoạt động <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={active ? "1" : "0"}
+              onChange={(e) => setActive(e.target.value === "1")}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              disabled={isCreating}
+            >
+              <option value="1">Đang hoạt động</option>
+              <option value="0">Bị ẩn</option>
+            </select>
           </div>
 
           {/* Buttons */}
