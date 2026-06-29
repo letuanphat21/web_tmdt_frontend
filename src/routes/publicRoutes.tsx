@@ -11,6 +11,7 @@ import KichHoatTaiKhoan from "@/pages/KichHoatTaiKhoan";
 import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
 import VNPayReturn from "@/pages/VNPayReturn";
 import StorePage from "@/pages/StorePage";
+import NotPermission from "@/pages/NotPermission/NotPermission";
 
 const publicRoutes = [
   {
@@ -58,6 +59,10 @@ const publicRoutes = [
   {
     path: "/store/:sellerId",
     element: <StorePage />,
+  },
+  {
+    path: "/not-permission",
+    element: <NotPermission />,
   },
 ];
 

@@ -12,24 +12,30 @@ import AdminShipping from "@/pages/AdminShipping";
 import AdminMessages from "@/pages/AdminMessages";
 import AdminReviews from "@/pages/AdminReviews";
 import AdminPostProduct from "@/pages/AdminPostProduct";
+import AdminRoute from "./adminRoute";
 
 const adminRoutes = {
   path: "/admin",
-  element: <AdminLayout />,
+  element: <AdminRoute />, // kiểm tra quyền trước
   children: [
-    { path: "users", element: <AdminUsers /> },
-    { path: "categories", element: <AdminCategories /> },
-    { path: "reports", element: <AdminReports /> },
-    { path: "orders", element: <AdminOrders /> },
-    { path: "products", element: <AdminProducts /> },
-    { path: "content", element: <AdminContent /> },
-    { path: "complaints", element: <AdminComplaints /> },
-    { path: "promotions", element: <AdminPromotions /> },
-    { path: "promotions/vouchers", element: <AdminVouchers /> },
-    { path: "shipping", element: <AdminShipping /> },
-    { path: "messages", element: <AdminMessages /> },
-    { path: "reviews", element: <AdminReviews /> },
-    { path: "post", element: <AdminPostProduct /> },
+    {
+      element: <AdminLayout />,
+      children: [
+        { path: "users", element: <AdminUsers /> },
+        { path: "categories", element: <AdminCategories /> },
+        { path: "reports", element: <AdminReports /> },
+        { path: "orders", element: <AdminOrders /> },
+        { path: "products", element: <AdminProducts /> },
+        { path: "content", element: <AdminContent /> },
+        { path: "complaints", element: <AdminComplaints /> },
+        { path: "promotions", element: <AdminPromotions /> },
+        { path: "promotions/vouchers", element: <AdminVouchers /> },
+        { path: "shipping", element: <AdminShipping /> },
+        { path: "messages", element: <AdminMessages /> },
+        { path: "reviews", element: <AdminReviews /> },
+        { path: "post", element: <AdminPostProduct /> },
+      ],
+    },
   ],
 };
 
