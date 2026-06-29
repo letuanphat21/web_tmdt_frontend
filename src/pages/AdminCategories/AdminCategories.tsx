@@ -135,6 +135,21 @@ const AdminCategories = () => {
     }
   };
 
+  // Xử lý khôi phục danh mục
+  const handleRestoreCategory = async (category: CategoryDTO) => {
+    try {
+      await updateCategory(category.maTheLoai, {
+        tenTheLoai: category.tenTheLoai,
+        active: true,
+      });
+      showToast("success", "Khôi phục phân loại thành công!");
+      loadCategories(currentPage, searchTerm);
+    } catch (err) {
+      console.error("Lỗi khôi phục phân loại:", err);
+      showToast("error", "Không thể khôi phục phân loại. Vui lòng thử lại!");
+    }
+  };
+
   // Xử lý tạo danh mục mới
   const handleCreateCategory = async (
     categoryData: Omit<CategoryDTO, "maTheLoai" | "soSanPham">
@@ -239,6 +254,7 @@ const AdminCategories = () => {
         loading={loading}
         onEdit={handleOpenEditModal}
         onDelete={handleOpenDeleteModal}
+        onRestore={handleRestoreCategory}
       />
 
       {/* 5. Pagination Component */}

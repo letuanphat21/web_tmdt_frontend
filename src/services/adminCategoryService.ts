@@ -4,6 +4,7 @@ export interface CategoryDTO {
   maTheLoai: number;
   tenTheLoai: string;
   soSanPham: number;
+  active: boolean;
 }
 
 export interface CategoryResponse {

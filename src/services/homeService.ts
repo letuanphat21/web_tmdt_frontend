@@ -9,6 +9,7 @@ export interface Category {
   maTheLoai: number;
   tenTheLoai: string;
   soSanPham: number;
+  active?: boolean;
 }
 
 export interface Product {

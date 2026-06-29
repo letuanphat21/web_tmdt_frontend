@@ -85,7 +85,9 @@ const ProductSection = ({ title }: ProductSectionProps) => {
         );
     }
 
-    if (products.length === 0) {
+    const filteredProducts = products.filter(p => p.soLuong > 0);
+
+    if (filteredProducts.length === 0) {
         return (
             <section className="w-full px-6 lg:px-10">
                 <h2 className="text-xl font-semibold text-[#4E6A4E] mb-6">{title}</h2>
@@ -95,7 +97,7 @@ const ProductSection = ({ title }: ProductSectionProps) => {
     }
 
     // Đoạn xử lý map dữ liệu tự động làm sạch chuỗi ảnh đại diện
-    const mappedProducts = products.map(p => {
+    const mappedProducts = filteredProducts.map(p => {
         return {
             id: p.maSanPham,
             title: p.tenSanPham,
@@ -135,7 +137,7 @@ const ProductSection = ({ title }: ProductSectionProps) => {
                 </div>
 
                 {/* Navigation Buttons */}
-                {products.length > 0 && (
+                {mappedProducts.length > 0 && (
                     <>
                         <button
                             onClick={scrollPrev}

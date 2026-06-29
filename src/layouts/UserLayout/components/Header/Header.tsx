@@ -65,8 +65,14 @@ const Header = () => {
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggest(true);
       try {
+        const token = localStorage.getItem("token");
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers["Authorization"] = `Bearer ${token}`;
+        }
         const res = await publicAxios.get(
-          `/products/search?keyword=${encodeURIComponent(value.trim())}&size=5`
+          `/products/search?keyword=${encodeURIComponent(value.trim())}&size=5`,
+          { headers }
         );
         const items: SuggestItem[] =
           (res as { data: { content: SuggestItem[] } })?.data?.content ?? [];
@@ -109,7 +115,6 @@ const Header = () => {
           <Link to="/" className="text-sm font-medium text-[#4E6A4E]">
             <h1 className="text-2xl font-bold text-[#4E6A4E]">OReMA.vn</h1>
           </Link>
-          <button className="text-[#4E6A4E] font-medium">Nữ</button>
         </div>
 
         {/* SEARCH */}

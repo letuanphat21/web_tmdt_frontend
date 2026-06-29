@@ -72,7 +72,7 @@ const ProductSearch = () => {
         setCategories((catRes as { data: Category[] }).data || []);
         setStatuses((statRes as { data: Status[] }).data || []);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // ── Gọi API mỗi khi keyword / filter / sort thay đổi ─────────────────────
@@ -328,11 +328,10 @@ const ProductSearch = () => {
               <button
                 onClick={handleClearFilters}
                 disabled={!hasActiveFilters}
-                className={`text-sm transition-all ${
-                  hasActiveFilters
+                className={`text-sm transition-all ${hasActiveFilters
                     ? "text-[#49613E] font-bold bg-[#F4FBEE] border border-[#49613E]/30 px-3 py-1 rounded-full hover:bg-[#49613E] hover:text-white cursor-pointer shadow-sm"
                     : "text-gray-300 cursor-not-allowed pointer-events-none"
-                }`}
+                  }`}
               >
                 Xóa bộ lọc
               </button>

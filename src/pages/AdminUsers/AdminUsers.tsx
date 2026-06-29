@@ -7,6 +7,7 @@ import {
   searchHiddenUsers,
   createUser,
   updateUser,
+  updateUserStatus,
 } from "@/services/adminUserService";
 import type { User } from "@/services/adminUserService";
 import AdminUsersTable from "./sections/AdminUsersTable";
@@ -116,6 +117,18 @@ const AdminUsers = () => {
       } finally {
         setIsDeleting(false);
       }
+    }
+  };
+
+  // Khôi phục người dùng
+  const handleRestoreUser = async (user: User) => {
+    try {
+      await updateUserStatus(user.maNguoiDung, 1);
+      showToast("success", "Khôi phục tài khoản thành công!");
+      loadUsers(currentPage, searchTerm);
+    } catch (err) {
+      console.error("Lỗi khôi phục người dùng:", err);
+      showToast("error", "Không thể khôi phục tài khoản. Vui lòng thử lại!");
     }
   };
 
@@ -292,6 +305,7 @@ const AdminUsers = () => {
         loading={loading}
         onEdit={handleOpenEditModal}
         onDelete={handleOpenDeleteModal}
+        onRestore={handleRestoreUser}
       />
 
       {/* 6. Pagination Component */}
