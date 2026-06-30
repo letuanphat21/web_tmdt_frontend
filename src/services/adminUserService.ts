@@ -10,6 +10,7 @@ export interface User {
   gioiTinh: string;
   ngaySinh: string;
   trangThai: number;
+  roles?: string[];
 }
 
 export interface UserResponse {

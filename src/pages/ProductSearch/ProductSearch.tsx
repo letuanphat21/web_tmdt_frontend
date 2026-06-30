@@ -81,10 +81,10 @@ const ProductSearch = () => {
     try {
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set("keyword", searchTerm.trim());
-      if (selectedCategories.length === 1)
-        params.set("categoryId", String(selectedCategories[0]));
-      if (selectedStatuses.length === 1)
-        params.set("statusId", String(selectedStatuses[0]));
+      if (selectedCategories.length > 0)
+        params.set("categoryId", selectedCategories.join(","));
+      if (selectedStatuses.length > 0)
+        params.set("statusId", selectedStatuses.join(","));
       if (minPrice) params.set("minPrice", minPrice);
       if (maxPrice) params.set("maxPrice", maxPrice);
       params.set("size", "50");
@@ -195,6 +195,7 @@ const ProductSearch = () => {
     const reader = new FileReader();
     reader.onload = (ev) => setImagePreview(ev.target?.result as string);
     reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const handleSearchByImage = async () => {
