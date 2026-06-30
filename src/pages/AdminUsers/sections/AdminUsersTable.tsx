@@ -31,6 +31,9 @@ const AdminUsersTable = ({
               Email
             </th>
             <th className="py-5 px-6 text-sm font-medium text-gray-500 text-center">
+              Quyền
+            </th>
+            <th className="py-5 px-6 text-sm font-medium text-gray-500 text-center">
               Trạng thái
             </th>
             <th className="py-5 px-6 text-sm font-medium text-gray-500 text-center">
@@ -41,7 +44,7 @@ const AdminUsersTable = ({
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={5} className="py-8 px-6 text-center text-gray-500">
+              <td colSpan={6} className="py-8 px-6 text-center text-gray-500">
                 Đang tải dữ liệu...
               </td>
             </tr>
@@ -61,6 +64,27 @@ const AdminUsersTable = ({
                 </td>
                 <td className="py-6 px-6 text-sm text-gray-600">
                   {user.email}
+                </td>
+                <td className="py-6 px-6 text-sm text-center">
+                  {user.roles && user.roles.length > 0 ? (
+                    (() => {
+                      const cleanRole = user.roles[0].replace("ROLE_", "");
+                      const isMainAdmin = cleanRole === "ADMIN";
+                      return (
+                        <span
+                          className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold shadow-sm ${
+                            isMainAdmin
+                              ? "bg-red-100 text-red-700 border border-red-200"
+                              : "bg-blue-100 text-blue-700 border border-blue-200"
+                          }`}
+                        >
+                          {cleanRole}
+                        </span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-gray-400 text-xs italic">Không có</span>
+                  )}
                 </td>
                 <td className="py-6 px-6 text-sm text-center">
                   <span
@@ -106,7 +130,7 @@ const AdminUsersTable = ({
             ))
           ) : (
             <tr>
-              <td colSpan={5} className="py-8 px-6 text-center text-gray-500">
+              <td colSpan={6} className="py-8 px-6 text-center text-gray-500">
                 Không tìm thấy người dùng nào
               </td>
             </tr>

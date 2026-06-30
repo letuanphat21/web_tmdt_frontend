@@ -17,7 +17,16 @@ const AdminUsersEditModal = ({
   onClose,
   onSave,
 }: AdminUsersEditModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    email: string;
+    hoDem: string;
+    ten: string;
+    diaChi: string;
+    gioiTinh: string;
+    ngaySinh: string;
+    trangThai: number;
+    role: string;
+  }>({
     email: "",
     hoDem: "",
     ten: "",
@@ -25,6 +34,7 @@ const AdminUsersEditModal = ({
     gioiTinh: "Nam",
     ngaySinh: "",
     trangThai: 1,
+    role: "ROLE_USER",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,6 +58,7 @@ const AdminUsersEditModal = ({
         gioiTinh: mappedGender,
         ngaySinh: user.ngaySinh || "",
         trangThai: user.trangThai ?? 1,
+        role: user.roles?.[0] || "ROLE_USER",
       });
       setErrors({});
     }
@@ -83,6 +94,10 @@ const AdminUsersEditModal = ({
       newErrors.ten = "Tên không được bỏ trống";
     }
 
+    if (!formData.role) {
+      newErrors.role = "Quyền hạn không được bỏ trống";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -90,7 +105,16 @@ const AdminUsersEditModal = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSave(formData);
+      onSave({
+        email: formData.email,
+        hoDem: formData.hoDem,
+        ten: formData.ten,
+        diaChi: formData.diaChi,
+        gioiTinh: formData.gioiTinh,
+        ngaySinh: formData.ngaySinh,
+        trangThai: formData.trangThai,
+        roles: [formData.role],
+      });
     }
   };
 
@@ -216,6 +240,46 @@ const AdminUsersEditModal = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isSaving}
             />
+          </div>
+
+          {/* Quyền hạn */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-600 mb-2">
+              Quyền hạn <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-3">
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name="role"
+                  value="ROLE_USER"
+                  checked={formData.role === "ROLE_USER"}
+                  onChange={() => setFormData(prev => ({ ...prev, role: "ROLE_USER" }))}
+                  className="accent-blue-600"
+                  disabled={isSaving}
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  USER
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                <input
+                  type="radio"
+                  name="role"
+                  value="ROLE_ADMIN"
+                  checked={formData.role === "ROLE_ADMIN"}
+                  onChange={() => setFormData(prev => ({ ...prev, role: "ROLE_ADMIN" }))}
+                  className="accent-blue-600"
+                  disabled={isSaving}
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  ADMIN
+                </span>
+              </label>
+            </div>
+            {errors.role && (
+              <p className="text-red-500 text-xs mt-1">{errors.role}</p>
+            )}
           </div>
 
           {/* Trạng thái */}
