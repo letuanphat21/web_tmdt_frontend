@@ -191,6 +191,15 @@ const ProductSearch = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Check size limit: 5MB
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      showToast("error", "Kích thước ảnh vượt quá giới hạn (tối đa 5MB)!");
+      e.target.value = "";
+      return;
+    }
+
     setUploadedImage(file);
     const reader = new FileReader();
     reader.onload = (ev) => setImagePreview(ev.target?.result as string);
@@ -214,13 +223,32 @@ const ProductSearch = () => {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         },
       );
+
+      if (!res.ok) {
+        if (res.status === 413) {
+          showToast("error", "Kích thước ảnh quá lớn, vui lòng chọn ảnh dưới 5MB!");
+        } else {
+          try {
+            const errData = await res.json();
+            showToast("error", errData.message || "Lỗi khi tìm kiếm hình ảnh!");
+          } catch {
+            showToast("error", "Lỗi từ máy chủ. Vui lòng thử lại sau!");
+          }
+        }
+        return;
+      }
+
       const data = await res.json();
       if (data.success) {
         const fetchedProducts = (data.data || []) as Product[];
         setProducts(fetchedProducts.filter((item) => item.soLuong > 0));
+        showToast("success", "Đã tìm thấy các sản phẩm tương tự!");
+      } else {
+        showToast("error", data.message || "Lỗi khi tìm kiếm hình ảnh!");
       }
-    } catch {
-      /* ignore */
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Không thể kết nối đến máy chủ hoặc kích thước ảnh quá lớn!");
     } finally {
       setIsSearchingByImage(false);
     }
