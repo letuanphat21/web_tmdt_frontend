@@ -87,3 +87,24 @@ export const postRutTien = async (
     );
     return response.data ?? (response as any);
 };
+
+export interface DoanhThuThang {
+    thang: number;
+    doanhThu: number;
+}
+
+export interface AdminThongKe {
+    tongDoanhThu: number;
+    tongDonHang: number;
+    tongKhachHang: number;
+    tongCuaHang: number;
+    doanhThuTheoThang: DoanhThuThang[];
+    doanhThuTheoDanhMuc: DoanhThuDanhMuc[];
+}
+
+export const getAdminThongKe = async (nam: number): Promise<AdminThongKe> => {
+    const response: any = await axiosClient.get("/admin/thong-ke", {
+        params: { nam }
+    });
+    return response.data;
+};
