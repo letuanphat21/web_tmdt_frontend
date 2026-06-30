@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import EditModal from "../components/EditModal";
 
 interface ProductList {
@@ -114,89 +114,102 @@ function ListProductTable() {
     setProductId(original.maSanPham);
   };
 
-  const columns = [
-    { accessorKey: "maSanPham", header: "ID", size: 80 },
-    { accessorKey: "tenSanPham", header: "Sản phẩm", size: 200 },
-    { accessorKey: "emailSeller", header: "Email người bán", size: 180 },
-    { accessorKey: "giaSanPham", header: "Giá bán", size: 120 },
-    { accessorKey: "active", header: "active", size: 100 },
-    {
-      id: "image",
-      header: "Hình ảnh",
-      size: 100,
-      cell: ({ row }: any) => {
-        const images = row.original.images || [];
-        const firstImage = images;
-        return firstImage ? (
-          <img
-            src={firstImage.duongDan}
-            alt={firstImage.tenAnd || "Sản phẩm"}
-            className="w-16 h-16 object-cover rounded-md"
-          />
-        ) : (
-          <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500">
-            Không có ảnh
-          </div>
-        );
+  const columns = useMemo(
+    () => [
+      { accessorKey: "maSanPham", header: "ID", size: 80 },
+      { accessorKey: "tenSanPham", header: "Sản phẩm", size: 200 },
+      { accessorKey: "emailSeller", header: "Email người bán", size: 180 },
+      { accessorKey: "giaSanPham", header: "Giá bán", size: 120 },
+      { accessorKey: "active", header: "active", size: 100 },
+      {
+        id: "image",
+        header: "Hình ảnh",
+        size: 100,
+        cell: ({ row }: any) => {
+          const rawImages = row.original.images as
+            | ProductImage
+            | ProductImage[]
+            | null
+            | undefined;
+          const firstImage = Array.isArray(rawImages)
+            ? rawImages[0]
+            : rawImages;
+
+          return firstImage?.duongDan ? (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-100">
+              <img
+                src={firstImage.duongDan}
+                alt={firstImage.tenAnd || "Sản phẩm"}
+                loading="lazy"
+                decoding="async"
+                className="h-16 w-16 object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex h-16 w-16 items-center justify-center rounded-md bg-gray-200 text-xs text-gray-500">
+              Không có ảnh
+            </div>
+          );
+        },
       },
-    },
-    {
-      accessorKey: "trangThai",
-      header: "Trạng thái",
-      size: 80,
-      cell: ({ row }: any) => {
-        const status = row.original.trangThai;
-        let bgColor = "bg-yellow-100";
-        let textColor = "text-yellow-800";
-        if (status === "APPROVED") {
-          bgColor = "bg-green-100";
-          textColor = "text-green-800";
-        } else if (status === "REJECTED") {
-          bgColor = "bg-red-100";
-          textColor = "text-red-800";
-        }
-        return (
-          <span
-            className={`${bgColor} ${textColor} px-2 py-1 rounded-full text-sm font-medium`}
-          >
-            {status === "PENDING"
-              ? "Chờ duyệt"
-              : status === "APPROVED"
-                ? "Đã duyệt"
-                : "Đã từ chối"}
-          </span>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: "Hành động",
-      cell: ({ row }: any) => {
-        const original = row.original as any;
-        console.log("original", original.trangThai);
-        return (
-          <div className="flex gap-2">
-            <button
-              onClick={() => handleSetEdit(original)}
-              className={`px-3 py-1 rounded-md text-white text-sm font-medium transition-colors bg-brand-primary hover:bg-[#3d4938] active:bg-[#2d3428] `}
+      {
+        accessorKey: "trangThai",
+        header: "Trạng thái",
+        size: 80,
+        cell: ({ row }: any) => {
+          const status = row.original.trangThai;
+          let bgColor = "bg-yellow-100";
+          let textColor = "text-yellow-800";
+          if (status === "APPROVED") {
+            bgColor = "bg-green-100";
+            textColor = "text-green-800";
+          } else if (status === "REJECTED") {
+            bgColor = "bg-red-100";
+            textColor = "text-red-800";
+          }
+          return (
+            <span
+              className={`${bgColor} ${textColor} px-2 py-1 rounded-full text-sm font-medium`}
             >
-              Sửa
-            </button>
-            <button
-              onClick={() => handleChangeActive(original)}
-              className={`w-20 py-1 rounded-md text-sm font-medium transition-colors ${
-                original.active
-                  ? "text-white bg-red-600 hover:bg-red-500 active:bg-red-700"
-                  : "text-white bg-brand-primary hover:bg-[#3d4938] active:bg-[#2d3428]"
-              }`}
-            >
-              {original.active ? "Deactive" : "Active"}
-            </button>
-          </div>
-        );
+              {status === "PENDING"
+                ? "Chờ duyệt"
+                : status === "APPROVED"
+                  ? "Đã duyệt"
+                  : "Đã từ chối"}
+            </span>
+          );
+        },
       },
-    },
-  ];
+      {
+        id: "actions",
+        header: "Hành động",
+        cell: ({ row }: any) => {
+          const original = row.original as any;
+          return (
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleSetEdit(original)}
+                className="px-3 py-1 rounded-md text-white text-sm font-medium bg-brand-primary hover:bg-[#3d4938] active:bg-[#2d3428]"
+              >
+                Sửa
+              </button>
+              <button
+                onClick={() => handleChangeActive(original)}
+                className={`w-20 py-1 rounded-md text-sm font-medium ${
+                  original.active
+                    ? "text-white bg-red-600 hover:bg-red-500 active:bg-red-700"
+                    : "text-white bg-brand-primary hover:bg-[#3d4938] active:bg-[#2d3428]"
+                }`}
+              >
+                {original.active ? "Deactive" : "Active"}
+              </button>
+            </div>
+          );
+        },
+      },
+    ],
+    [handleSetEdit, handleChangeActive],
+  );
 
   const table = useReactTable({
     data: data || [],
@@ -270,7 +283,7 @@ function ListProductTable() {
             {table.getRowModel().rows.map((row, idx) => (
               <tr
                 key={row.id}
-                className={`border-b border-gray-200 transition-colors ${
+                className={`border-b border-gray-200 ${
                   idx % 2 === 0 ? "bg-white" : "bg-gray-50"
                 } hover:bg-[#F9FAF4]`}
               >
