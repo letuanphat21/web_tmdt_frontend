@@ -35,7 +35,7 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── Order Detail Modal ───────────────────────────────────────────────────────
 interface OrderDetailModalProps {
-  order: DonHangDTO;
+  order: DonHangDTO | any;
   onClose: () => void;
   onRefresh: () => void;
 }
@@ -157,7 +157,7 @@ function OrderDetailModal({ order, onClose, onRefresh }: OrderDetailModalProps) 
               Sản phẩm ({order.chiTiet?.length || 0})
             </p>
             <div className="space-y-3">
-              {order.chiTiet?.map((item) => (
+              {order.chiTiet?.map((item : any) => (
                 <Link
                   key={item.maChiTietDonHang}
                   to={`/product/${item.maSanPham}`}

@@ -68,6 +68,13 @@ function EditModal({
     setLoading(true);
     e.preventDefault();
     try {
+      const client = supabase;
+      if (!client) {
+        throw new Error(
+          "Supabase client chưa được khởi tạo. Kiểm tra biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.",
+        );
+      }
+
       const uploadedImages = await Promise.all(
         images.map(async (img: any) => {
           if (!img.file) {
@@ -79,13 +86,13 @@ function EditModal({
           }
           const fileName = `${Date.now()}_${img.tenHinhAnh}`;
 
-          const { error } = await supabase.storage
+          const { error } = await client.storage
             .from("product")
             .upload(fileName, img.file);
 
           if (error) throw error;
 
-          const { data } = supabase.storage
+          const { data } = client.storage
             .from("product")
             .getPublicUrl(fileName);
 
@@ -105,9 +112,9 @@ function EditModal({
 
       console.log("payload:", payload);
 
-      const res = await axiosClient.put(`/products/${productId}`, payload);
+      const res :any = await axiosClient.put(`/products/${productId}`, payload);
 
-      setSuccess(res.message);
+      setSuccess(res.message );
 
       setData((prev: any[]) =>
         prev.map((p: any) =>

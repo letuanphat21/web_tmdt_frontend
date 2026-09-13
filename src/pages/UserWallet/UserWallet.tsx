@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 // Thêm import Redux ở đây
 import { useSelector } from "react-redux";
 // Import thư viện vẽ biểu đồ
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell,  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 // Import các API từ service
 import {
     getDoanhThuTheoKhoangNgay,
@@ -159,10 +159,10 @@ function UserWallet() {
     }, [categoryData]);
 
     // Format tiền tệ khi hover chuột vào biểu đồ
-    const tooltipFormatter = (value: number): [string, string] => {
-        const numericValue = typeof value === 'number' ? value : (Number(value) || 0);
-        return [`${numericValue.toLocaleString('vi-VN')} đ`, "Doanh thu"];
-    };
+    // const tooltipFormatter = (value: number | string | undefined): [string, string] => {
+    //     const numericValue = Number(value ?? 0) || 0;
+    //     return [`${numericValue.toLocaleString('vi-VN')} đ`, "Doanh thu"];
+    // };
 
     const filteredTransactions = useMemo(() => {
         return transactions.filter((transaction) => {
@@ -305,7 +305,7 @@ function UserWallet() {
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
                                     <YAxis tickFormatter={(value) => `${(value / 1000)}k`} axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dx={-10} />
-                                    <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                    {/* <Tooltip formatter={tooltipFormatter} cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} /> */}
                                     <Bar dataKey="doanhThu" fill="#49613E" radius={[6, 6, 0, 0]} barSize={40} />
                                 </BarChart>
                             </ResponsiveContainer>
@@ -340,7 +340,7 @@ function UserWallet() {
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                                                 ))}
                                             </Pie>
-                                            <Tooltip formatter={tooltipFormatter} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                                            {/* <Tooltip formatter={tooltipFormatter} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} /> */}
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>

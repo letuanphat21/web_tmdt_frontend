@@ -79,8 +79,8 @@ function ListProductTable() {
     if (data.active === true) {
       axiosClient
         .put(`/products/${data.maSanPham}/deactive`)
-        .then((res) => {
-          setSuccess(res.message);
+        .then((res :any) => {
+          setSuccess(res.message );
           setData((prev) =>
             prev.map((p) =>
               p.maSanPham === data.maSanPham ? { ...p, active: false } : p,
@@ -93,7 +93,7 @@ function ListProductTable() {
     } else {
       axiosClient
         .put(`/products/${data.maSanPham}/active`)
-        .then((res) => {
+        .then((res :any) => {
           setSuccess(res.message);
           setData((prev) =>
             prev.map((p) =>
@@ -107,7 +107,7 @@ function ListProductTable() {
     }
   };
 
-  const handleChangeCondition = (data: any) => {};
+  // const handleChangeCondition = (data: any) => {};
 
   const handleSetEdit = (original: any) => {
     setEditModal(true);

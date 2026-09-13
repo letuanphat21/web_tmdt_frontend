@@ -20,18 +20,25 @@ export async function uploadAvatar(
   file: File,
   userEmail: string,
 ): Promise<string> {
+  const client = supabase;
+  if (!client) {
+    throw new Error(
+      "Supabase client chưa được khởi tạo. Kiểm tra biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.",
+    );
+  }
+
   const bucket = import.meta.env.VITE_SUPABASE_BUCKET_PROFILE || "profile";
   const ext = file.name.split(".").pop() ?? "jpg";
   const safeEmail = userEmail.replace(/[@.]/g, "_");
   const fileName = `${safeEmail}_${Date.now()}.${ext}`;
 
-  const { error } = await supabase.storage
+  const { error } = await client.storage
     .from(bucket)
     .upload(fileName, file, { upsert: true });
 
   if (error) throw new Error("Upload ảnh thất bại: " + error.message);
 
-  const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
+  const { data } = client.storage.from(bucket).getPublicUrl(fileName);
   return data.publicUrl;
 }
 

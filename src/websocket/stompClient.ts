@@ -3,8 +3,7 @@ import { store } from "../redux/store";
 import socketSlice from "@/redux/socketSlice/socketSlice";
 
 export const stompClient = new Client({
-  // brokerURL: "ws://localhost:8080/app_socket",
-   brokerURL: "wss://2f4e-2a09-bac5-d423-16d2-00-246-7a.ngrok-free.app/app_socket",
+  brokerURL: import.meta.env.VITE_WS_URL,
 
   reconnectDelay: 5000,
 

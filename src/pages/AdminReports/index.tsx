@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid,  ResponsiveContainer } from 'recharts';
 import { getAdminThongKe, type AdminThongKe } from '@/services/thongKeService';
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -138,10 +138,13 @@ const AdminReports = () => {
                                 dx={-10}
                                 tickFormatter={(val) => val >= 1000000 ? `${(val / 1000000).toLocaleString()}M` : val.toLocaleString()}
                             />
-                            <Tooltip
-                                formatter={(val: number) => [formatCurrency(val), 'Doanh thu']}
+                            {/* <Tooltip
+                                formatter={(val: number | string | undefined) => [
+                                    formatCurrency(Number(val ?? 0)),
+                                    'Doanh thu',
+                                ]}
                                 contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            />
+                            /> */}
                             <Line
                                 type="monotone"
                                 dataKey="value"
@@ -181,10 +184,13 @@ const AdminReports = () => {
                                     dx={-10}
                                     tickFormatter={(val) => val >= 1000000 ? `${(val / 1000000).toLocaleString()}M` : val.toLocaleString()}
                                 />
-                                <Tooltip
-                                    formatter={(val: number) => [formatCurrency(val), 'Doanh thu']}
+                                {/* <Tooltip
+                                    formatter={(val: number | string | undefined) => [
+                                    formatCurrency(Number(val ?? 0)),
+                                    "Doanh thu",
+                                    ]}
                                     contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                                />
+                                /> */}
                                 <Line
                                     type="monotone"
                                     dataKey="value"

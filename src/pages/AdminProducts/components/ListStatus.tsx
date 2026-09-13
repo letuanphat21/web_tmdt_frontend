@@ -16,6 +16,7 @@ function ListStatus({ statusId, handleChange }: Props) {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    setLoading(true);
     publicAxios
       .get("/conditions")
       .then((res) => {
@@ -23,7 +24,11 @@ function ListStatus({ statusId, handleChange }: Props) {
         setStatus(data);
       })
       .catch((error) => {
+        setError("Bị lỗi bạn hãy reload trang lại.");
         console.error("Failed to fetch conditions:", error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
