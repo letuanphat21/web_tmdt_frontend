@@ -1,4 +1,4 @@
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 
 export type SellerListingFilter =
   | "ALL"

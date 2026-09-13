@@ -4,7 +4,7 @@ import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { addItemToCart } from "@/redux/cartSlice/cartSlice";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { ShoppingCart, Camera } from "lucide-react";
-import publicAxios from "@/service/publicAxios";
+import publicAxios from "@/lib/publicAxios";
 
 interface Product {
   maSanPham: number;

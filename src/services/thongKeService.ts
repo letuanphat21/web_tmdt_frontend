@@ -1,4 +1,4 @@
-import axiosClient from "../service/axiosClient"; // Sửa lại đường dẫn này nếu thư mục của bạn khác
+import axiosClient from "../lib/axiosClient"; // Sửa lại đường dẫn này nếu thư mục của bạn khác
 
 // --- Kiểu dữ liệu và API cho Biểu đồ Cột (Doanh thu theo ngày) ---
 export interface DoanhThuNgay {

@@ -1,5 +1,5 @@
 import chatSlice from "@/redux/chatSlice/chatSlice";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import dinhDangThoiGian from "@/utils/DinhDangThoiGian";
 import { stompClient } from "@/websocket/stompClient";
 import { useEffect, useRef, useState } from "react";

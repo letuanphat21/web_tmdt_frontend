@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux";
 import { jwtDecode } from "jwt-decode";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import authSlice from "@/redux/authSlice/authSlice";
 import type Token from "@/model/Token";
 import type User from "@/model/User";

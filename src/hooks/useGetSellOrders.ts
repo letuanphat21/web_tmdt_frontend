@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 
 export interface ChiTietDonHangDTO {
   maChiTietDonHang: number;

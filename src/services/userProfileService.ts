@@ -1,4 +1,4 @@
-import axiosClient from "./axiosClient";
+import axiosClient from "../lib/axiosClient";
 import supabase from "@/lib/supabaseClient";
 
 export interface UpdateProfileRequest {

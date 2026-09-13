@@ -1,5 +1,5 @@
-import axiosClient from "@/service/axiosClient";
-import publicAxios from "@/service/publicAxios";
+import axiosClient from "@/lib/axiosClient";
+import publicAxios from "@/lib/publicAxios";
 
 export interface BinhLuanDTO {
   maBinhLuan: number;

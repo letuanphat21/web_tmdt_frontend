@@ -3,7 +3,7 @@ import type UploadProduct from "@/model/UploadProduct";
 import {
   postProductSeller,
   uploadProductImage,
-} from "@/service/productPostService";
+} from "@/services/productPostService";
 import { useState } from "react";
 
 export function usePostProduct() {

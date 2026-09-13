@@ -4,7 +4,7 @@ import { Bell, Search, ShoppingCart } from "lucide-react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import UserDropdown from "./UserDropdown/UserDropdown";
-import publicAxios from "@/service/publicAxios";
+import publicAxios from "@/lib/publicAxios";
 
 interface SuggestItem {
   maSanPham: number;

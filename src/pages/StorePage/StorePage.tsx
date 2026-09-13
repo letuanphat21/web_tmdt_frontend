@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Store, Star, Package, Phone, MapPin } from "lucide-react";
-import publicAxios from "@/service/publicAxios";
+import publicAxios from "@/lib/publicAxios";
 
 interface SellerInfo {
   maNguoiDung: number;

@@ -1,4 +1,4 @@
-import publicAxios from '@/service/publicAxios';
+import publicAxios from '@/lib/publicAxios';
 
 // Sử dụng publicAxios với baseURL /api/home
 const API = publicAxios.create({

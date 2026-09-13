@@ -4,7 +4,7 @@ import {
   updateProfileApi,
   uploadAvatar,
   type UpdateProfileRequest,
-} from "@/service/userProfileService";
+} from "@/services/userProfileService";
 import authSlice from "@/redux/authSlice/authSlice";
 
 export function useUpdateProfile() {

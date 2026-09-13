@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import googleImage from "../../assets/image/google.png";
 import { useUpdateProfile } from "@/hooks/useUpdateProfile";
-import type { UpdateProfileRequest } from "@/service/userProfileService";
+import type { UpdateProfileRequest } from "@/services/userProfileService";
 import dinhDangThoiGian from "@/utils/DinhDangThoiGian";
 import Loading from "@/components/common/Loading";
 

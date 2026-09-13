@@ -1,4 +1,4 @@
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 
 export const chatWithSeller = (emailOpponent: string) =>
   axiosClient.post<{ emailOpponent: string }, unknown>("/conversations", {

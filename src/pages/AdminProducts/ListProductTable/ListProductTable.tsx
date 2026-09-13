@@ -1,5 +1,5 @@
 import Pagination from "@/components/common/Pagination";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import {
   flexRender,
   getCoreRowModel,

@@ -4,7 +4,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import Pagination from "@/components/common/Pagination";
 import type ProductPending from "../interface/ProductPending";
 

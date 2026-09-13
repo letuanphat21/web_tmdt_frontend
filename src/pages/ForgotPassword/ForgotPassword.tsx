@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AuthInput from "../../components/common/AuthInput";
-import publicAxios from "@/service/publicAxios";
+import publicAxios from "@/lib/publicAxios";
 import OtpModal from "./components/OtpModal";
 
 function ForgotPassword() {

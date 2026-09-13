@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import Loading from "@/components/common/Loading";
 import ListCategory from "@/pages/UserSellingPost/ListCategory/ListCategory";
 import ListCondition from "@/pages/UserSellingPost/ListCondition/ListCondition";
-import { uploadProductImage } from "@/service/productPostService";
+import { uploadProductImage } from "@/services/productPostService";
 import type UploadProduct from "@/model/UploadProduct";
 import {
   patchSellProduct,

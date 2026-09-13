@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 
 export interface TrangThaiDTO {
   id: number;

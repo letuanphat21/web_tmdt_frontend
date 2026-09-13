@@ -1,6 +1,6 @@
 import type Condition from "@/model/Condition";
 import type UploadProduct from "@/model/UploadProduct";
-import publicAxios from "@/service/publicAxios";
+import publicAxios from "@/lib/publicAxios";
 import { useEffect, useState } from "react";
 
 type Props = {

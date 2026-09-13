@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import ListCategory from "@/pages/AdminPostProduct/ListCategory/ListCategory";
 import ListCondition from "@/pages/AdminPostProduct/ListCondition/ListCondition";
 import ImageEditor from "./ImageEditor";

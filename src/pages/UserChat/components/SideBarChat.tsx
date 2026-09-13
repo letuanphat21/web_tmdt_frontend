@@ -1,6 +1,6 @@
 import type { UserResponse } from "@/redux/chatSlice/chatSlice";
 import chatSlice from "@/redux/chatSlice/chatSlice";
-import axiosClient from "@/service/axiosClient";
+import axiosClient from "@/lib/axiosClient";
 import dinhDangThoiGian from "@/utils/DinhDangThoiGian";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";

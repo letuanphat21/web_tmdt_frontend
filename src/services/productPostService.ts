@@ -1,5 +1,5 @@
 import type UploadProduct from "@/model/UploadProduct";
-import axiosClient from "./axiosClient";
+import axiosClient from "../lib/axiosClient";
 import supabase from "@/lib/supabaseClient";
 
 export async function uploadProductImage(file: File): Promise<string> {
